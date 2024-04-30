@@ -257,8 +257,8 @@ function TransactionItem({ transaction }) {
               bg={hoverBgColor}
               color="gray.500"
               fontSize="lg"
-              _hover={{  cursor: 'pointer' }}
               borderRadius={4}
+              _hover={{ bg: 'gray.200' }}
             >
               <Flex direction="row" align="center" gap="2">
                 <Text fontSize="sm" fontWeight="bold">

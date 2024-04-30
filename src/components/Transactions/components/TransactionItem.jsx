@@ -53,7 +53,6 @@ function TransactionItem({ transaction }) {
     setTempVentilations(updatedTempVentilations);
   };
 
-  // Fonction pour soumettre les ventilations modifiées à la base de données
   const submitVentilations = async () => {
     // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
     for (let i = 0; i < tempVentilations.length; i++) {
@@ -66,6 +65,7 @@ function TransactionItem({ transaction }) {
     // Réinitialiser les modifications temporaires après la soumission
     setTempVentilations([]);
   };
+
 
   // Fonction pour mettre à jour la catégorie d'une ventilation temporairement
   const handleTempCategorySelect = (index, category) => {
@@ -370,7 +370,7 @@ function TransactionItem({ transaction }) {
                           icon={<FcSupport />}
                           size="sm"
                           variant="ghost"
-                          onClick={() => openCategoryModal(index)}
+                          onClick={submitVentilations} // Appeler la fonction pour soumettre les modifications
                           mr={2}
                         />
                       </Tooltip>

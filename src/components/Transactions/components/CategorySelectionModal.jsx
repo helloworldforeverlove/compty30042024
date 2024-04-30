@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  Box, Flex, Button, Modal, ModalOverlay, ModalContent, ModalHeader,
-  IconButton, ModalBody, SimpleGrid, Tag, VStack, Heading, Input, FormControl, FormLabel
+  Box, Flex, IconButton, Modal, ModalOverlay, ModalContent, ModalHeader,
+  ModalBody, SimpleGrid, Tag, VStack, Heading, FormControl, FormLabel, Input, Container
 } from '@chakra-ui/react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -23,22 +23,30 @@ function CategorySelectionModal({ categories, isOpen, onClose, onSelectCategory,
           />
         </ModalHeader>
         <ModalBody>
-          <SimpleGrid columns={3} spacing={5}>
-            {Object.entries(categories).map(([key, items]) => (
-              <Box p={5} borderWidth="1px" borderRadius="lg" key={key}>
-                <Flex align="center" fontSize="xl">
-                  <Heading as="h3" ml={3} fontSize="xl">{key}</Heading>
-                </Flex>
-                <VStack align="start">
-                  {items.map((item, idx) => (
-                    <Tag key={idx} size="md" variant="solid" onClick={() => onSelectCategory(item, activeIndex)}>
-                      {item}
-                    </Tag>
-                  ))}
-                </VStack>
-              </Box>
-            ))}
-          </SimpleGrid>
+          <Container maxW="container.xxl">
+            <SimpleGrid columns={3} spacing={5}>
+              {Object.keys(categories).map((categoryKey) => (
+                <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
+                  <Flex align="center" fontSize="xl">
+                    <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
+                  </Flex>
+                  <VStack align="start" spacing={3}>
+                    {categories[categoryKey].map((item, index) => (
+                      <Tag
+                        key={index}
+                        size="md"
+                        variant="solid"
+                        _hover={{ bg: "blue.500", color: "white" }}
+                        onClick={() => onSelectCategory(item, activeIndex)}
+                      >
+                        {item}
+                      </Tag>
+                    ))}
+                  </VStack>
+                </Box>
+              ))}
+            </SimpleGrid>
+          </Container>
         </ModalBody>
       </ModalContent>
     </Modal>

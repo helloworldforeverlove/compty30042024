@@ -127,61 +127,8 @@ function TransactionItem({ transaction }) {
     setVentilations([...ventilations, { id: newId, category: '', amount: '', selectedCategory: '' }]);
   };
 
-  const removeVentilation = index => {
-    setVentilations(ventilations.filter((_, i) => i !== index));
-  };
-
-  const updateVentilation = async (index, fields) => {
-    if (!ventilations[index]) return false; // Check for undefined
-    const ventilation = ventilations[index];
-    const { data, error } = await supabase
-      .from('ventilations')
-      .update(fields)
-      .eq('id', ventilation.id);
-  
-    if (error) {
-      toast({
-        title: "Error updating",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      return false;
-    }
-    return true;
-  };
   
 
-  // Function to delete a ventilation
-  const deleteVentilation = async (index) => {
-    const ventilation = ventilations[index];
-    const { error } = await supabase
-      .from('ventilations')
-      .delete()
-      .eq('id', ventilation.id);
-
-    if (error) {
-      toast({
-        title: "Error deleting",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      // Remove the ventilation from local state
-      const updatedVentilations = ventilations.filter((_, i) => i !== index);
-      setVentilations(updatedVentilations);
-      toast({
-        title: "Deletion Successful",
-        description: "The ventilation has been deleted successfully.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
 
 
   const handleCategorySelect = (index, category) => {

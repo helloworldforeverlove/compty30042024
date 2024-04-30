@@ -53,18 +53,19 @@ function TransactionItem({ transaction }) {
     setTempVentilations(updatedTempVentilations);
   };
 
-  const submitVentilations = async () => {
-    // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
-    for (let i = 0; i < tempVentilations.length; i++) {
-      const ventilation = tempVentilations[i];
-      // Vérifier si la ventilation a été modifiée
-      if (ventilation && Object.keys(ventilation).length > 0) {
-        await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
-      }
+// Nouvelle fonction pour soumettre les ventilations
+const submitVentilations = async () => {
+  // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
+  for (let i = 0; i < tempVentilations.length; i++) {
+    const ventilation = tempVentilations[i];
+    // Vérifier si la ventilation a été modifiée
+    if (ventilation && Object.keys(ventilation).length > 0) {
+      await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
     }
-    // Réinitialiser les modifications temporaires après la soumission
-    setTempVentilations([]);
-  };
+  }
+  // Réinitialiser les modifications temporaires après la soumission
+  setTempVentilations([]);
+};
 
 
   // Fonction pour mettre à jour la catégorie d'une ventilation temporairement
@@ -294,64 +295,6 @@ function TransactionItem({ transaction }) {
         </Text>
       </Flex>
 
-      <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
-        <ModalOverlay />
-        <ModalContent m={0} maxW="100vw">
-          <ModalHeader>
-            Affecter une Catégories
-            <IconButton
-              aria-label="Close modal"
-              icon={<FaTimes />}
-              onClick={onCategoryModalClose}
-              position="absolute"
-              right="8px"
-              top="8px"
-              size="sm"
-            />
-          </ModalHeader>
-          <ModalBody>
-            <Container maxW="container.xxl">
-              <Input
-                value={selectedItem}
-                placeholder="Click on an item to see it here..."
-
-                mb={4}
-              />
-              <SimpleGrid columns={6} spacing={5}>
-                {Object.keys(categories).map((categoryKey) => (
-                  <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-                    <Flex align="center" fontSize="xl">
-                      {icons[categoryKey]}
-                      <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-                    </Flex>
-                    <VStack align="start">
-                      {categories[categoryKey].map((item, index) => (
-                        <Tag size="md" variant="solid" key={index} _hover={{
-                          background: hoverBg,
-                          transform: 'scale(1.1)',
-                          transition: 'background-color 0.2s, transform 0.2s'
-                        }} _active={{
-                          background: activeBg,
-                          transform: 'scale(0.9)',
-                          transition: 'background-color 0.1s, transform 0.1s'
-                        }} onClick={(event) => {
-                          event.preventDefault();
-                          setSelectedItem(item);
-                          handleCategorySelect(item);
-                        }}>
-                          {item}
-                        </Tag>
-                      ))}
-                    </VStack>
-                  </Box>
-                ))}
-              </SimpleGrid>
-
-
-            </Container>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
         <ModalOverlay />
         <ModalContent>

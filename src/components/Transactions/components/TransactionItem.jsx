@@ -43,6 +43,39 @@ import { FcApproval } from "react-icons/fc";
 
 function TransactionItem({ transaction }) {
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
+  const [tempVentilations, setTempVentilations] = useState([]); // Nouvel état pour stocker les modifications temporaires
+  // Autres hooks et fonctions inchangés...
+
+  // Fonction pour mettre à jour les ventilations temporairement
+  const updateTempVentilation = (index, fields) => {
+    const updatedTempVentilations = [...tempVentilations];
+    updatedTempVentilations[index] = { ...updatedTempVentilations[index], ...fields };
+    setTempVentilations(updatedTempVentilations);
+  };
+
+  // Fonction pour soumettre les ventilations modifiées à la base de données
+  const submitVentilations = async () => {
+    // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
+    for (let i = 0; i < tempVentilations.length; i++) {
+      const ventilation = tempVentilations[i];
+      // Vérifier si la ventilation a été modifiée
+      if (ventilation && Object.keys(ventilation).length > 0) {
+        await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
+      }
+    }
+    // Réinitialiser les modifications temporaires après la soumission
+    setTempVentilations([]);
+  };
+
+  // Fonction pour mettre à jour la catégorie d'une ventilation temporairement
+  const handleTempCategorySelect = (index, category) => {
+    updateTempVentilation(index, { category });
+  };
+
+  // Fonction pour mettre à jour le montant d'une ventilation temporairement
+  const handleTempAmountChange = (index, amount) => {
+    updateTempVentilation(index, { amount: parseFloat(amount) });
+  };
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
   const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
   const { isOpen: isDetailOpen, onToggle: onDetailToggle } = useDisclosure();
@@ -331,22 +364,27 @@ function TransactionItem({ transaction }) {
                   <Flex justify="space-between" align="center">
                     <Text fontWeight="medium">Ventilation {index + 1}</Text>
                     <Box>
-                      <IconButton
-                        aria-label="Edit category"
-                        icon={<FcSupport />}
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openCategoryModal(index)}
-                        mr={2}
-                      />
-                      <IconButton
-                        aria-label="Remove ventilation"
-                        icon={<FcFullTrash />}
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeVentilation(index)}
-                        color={iconColor}
-                      />
+                      <Tooltip label="Modifier" placement="top">
+                        <IconButton
+                          aria-label="Edit category"
+                          icon={<FcSupport />}
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openCategoryModal(index)}
+                          mr={2}
+                        />
+                      </Tooltip>
+
+                      <Tooltip label="Supprimer" placement="top">
+                        <IconButton
+                          aria-label="Remove ventilation"
+                          icon={<FcFullTrash />}
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeVentilation(index)}
+                          color={iconColor}
+                        />
+                      </Tooltip>
                     </Box>
                   </Flex>
                   <Stack spacing={4} mt={4}>

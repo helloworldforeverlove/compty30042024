@@ -302,126 +302,73 @@ function TransactionItem({ transaction }) {
       </Flex>
 
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Ventilation</ModalHeader>
-          <ModalBody>
-            <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-              <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
-              {ventilations.map((ventilation, index) => (
-                <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
-                  <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium">Ventilation {index + 1}</Text>
-                    <Box>
-                      <Tooltip label="Modifier" placement="top">
-                        <IconButton
-                          aria-label="Edit category"
-                          icon={<FcSupport />}
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => updateVentilation(index, { category: ventilation.category, amount: ventilation.amount })}
-                        />
-                      </Tooltip>
+  <ModalOverlay />
+  <ModalContent>
+    <ModalHeader>Edit Ventilation</ModalHeader>
+    <ModalBody>
+      <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+        <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+        {ventilations.map((ventilation, index) => (
+          <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+            <Flex justify="space-between" align="center">
+              <Text fontWeight="medium">Ventilation {index + 1}</Text>
+            </Flex>
+            <Stack spacing={4} mt={4}>
+              <FormControl>
+                <FormLabel>Catégorie</FormLabel>
+                <Select
+                  placeholder="Sélectionnez une catégorie..."
+                  value={ventilation.category || ''}
+                  onChange={(e) => handleCategorySelect(index, e.target.value)}
+                >
+                  {Object.keys(categories).map(categoryKey => (
+                    categories[categoryKey].map(item => (
+                      <option value={item} key={item}>{item}</option>
+                    ))
+                  ))}
+                </Select>
+              </FormControl>
 
-                      <Tooltip label="Supprimer" placement="top">
-                        <IconButton
-                          aria-label="Remove ventilation"
-                          icon={<FcFullTrash />}
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteVentilation(index)}
-                        />
-                      </Tooltip>
-                    </Box>
-                  </Flex>
-                  <Stack spacing={4} mt={4}>
-                    <FormControl>
-                      <FormLabel>Catégorie</FormLabel>
-                      <Select
-                        placeholder="Sélectionnez une catégorie..."
-                        value={ventilation.category || ''}
-                        onChange={(e) => handleCategorySelect(index, e.target.value)} // Pass index as the first argument
-                      >
-                        {Object.keys(categories).map(categoryKey => (
-                          categories[categoryKey].map(item => (
-                            <option value={item} key={item}>{item}</option>
-                          ))
-                        ))}
-                      </Select>
-                    </FormControl>
+              <FormControl>
+                <FormLabel>Montant</FormLabel>
+                <InputGroup>
+                  <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
+                  <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
+                </InputGroup>
+              </FormControl>
+            </Stack>
+          </Box>
+        ))}
+        <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
+          Ajouter une ventilation
+        </Button>
+      </Box>
+    </ModalBody>
+    <ModalFooter>
+      <Tooltip label="Apply changes to all ventilations" placement="top">
+        <IconButton
+          aria-label="Apply changes"
+          icon={<FcSupport />}
+          size="sm"
+          variant="ghost"
+          onClick={submitVentilations}
+          mr={2}
+        />
+      </Tooltip>
+      <Tooltip label="Delete all ventilations" placement="top">
+        <IconButton
+          aria-label="Remove all ventilations"
+          icon={<FcFullTrash />}
+          size="sm"
+          variant="ghost"
+          onClick={() => setVentilations([])}
+        />
+      </Tooltip>
+      <Button onClick={onVentilationModalClose}>Close</Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
 
-                    <FormControl>
-                      <FormLabel>Montant</FormLabel>
-                      <InputGroup>
-                        <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
-                        <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
-                      </InputGroup>
-                    </FormControl>
-                  </Stack>
-                </Box>
-              ))}
-              <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
-                Ajouter une ventilation
-              </Button>
-              <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
-                <ModalOverlay />
-                <ModalContent m={0} maxW="100vw">
-                  <ModalHeader>
-                    Affecter une Catégories
-                    <IconButton
-                      aria-label="Close modal"
-                      icon={<FaTimes />}
-                      onClick={onCategoryModalClose}
-                      position="absolute"
-                      right="8px"
-                      top="8px"
-                      size="sm"
-                    />
-                  </ModalHeader>
-                  <ModalBody>
-                    <Container maxW="container.xxl">
-                      <SimpleGrid columns={6} spacing={5}>
-                        {Object.keys(categories).map((categoryKey) => (
-                          <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-                            <Flex align="center" fontSize="xl">
-                              {icons[categoryKey]}
-                              <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-                            </Flex>
-                            <VStack align="start">
-                              {categories[categoryKey].map((item, index) => (
-                                <Tag size="md" variant="solid" key={index} _hover={{
-                                  background: hoverBg,
-                                  transform: 'scale(1.1)',
-                                  transition: 'background-color 0.2s, transform 0.2s'
-                                }} _active={{
-                                  background: activeBg,
-                                  transform: 'scale(0.9)',
-                                  transition: 'background-color 0.1s, transform 0.1s'
-                                }} onClick={(event) => {
-                                  event.preventDefault();
-                                  setSelectedItem(item);
-                                  handleCategorySelect(item); // This will invoke the update on the actual ventilations array
-                                }}>
-                                  {item}
-                                </Tag>
-
-                              ))}
-                            </VStack>
-                          </Box>
-                        ))}
-                      </SimpleGrid>
-
-                    </Container>
-                  </ModalBody>
-                </ModalContent>
-              </Modal>
-            </Box>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onVentilationModalClose}>Close</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
 
       <Modal isOpen={isUploadOpen} onClose={onUploadClose} isCentered size="xl">
         <ModalOverlay />

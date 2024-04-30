@@ -67,16 +67,6 @@ const submitVentilations = async () => {
   setTempVentilations([]);
 };
 
-
-  // Fonction pour mettre à jour la catégorie d'une ventilation temporairement
-  const handleTempCategorySelect = (index, category) => {
-    updateTempVentilation(index, { category });
-  };
-
-  // Fonction pour mettre à jour le montant d'une ventilation temporairement
-  const handleTempAmountChange = (index, amount) => {
-    updateTempVentilation(index, { amount: parseFloat(amount) });
-  };
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
   const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
   const { isOpen: isDetailOpen, onToggle: onDetailToggle } = useDisclosure();
@@ -120,12 +110,6 @@ const submitVentilations = async () => {
 
   const removeVentilation = index => {
     setVentilations(ventilations.filter((_, i) => i !== index));
-  };
-
-  const openCategoryModal = (index) => {
-    setActiveVentilationIndex(index);
-    setSelectedItem(ventilations[index].category);
-    onCategoryModalOpen();
   };
 
   const updateVentilation = async (index, fields) => {

@@ -46,26 +46,20 @@ function TransactionItem({ transaction }) {
   const [tempVentilations, setTempVentilations] = useState([]); // Nouvel état pour stocker les modifications temporaires
   // Autres hooks et fonctions inchangés...
 
-  // Fonction pour mettre à jour les ventilations temporairement
-  const updateTempVentilation = (index, fields) => {
-    const updatedTempVentilations = [...tempVentilations];
-    updatedTempVentilations[index] = { ...updatedTempVentilations[index], ...fields };
-    setTempVentilations(updatedTempVentilations);
-  };
 
-// Nouvelle fonction pour soumettre les ventilations
-const submitVentilations = async () => {
-  // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
-  for (let i = 0; i < tempVentilations.length; i++) {
-    const ventilation = tempVentilations[i];
-    // Vérifier si la ventilation a été modifiée
-    if (ventilation && Object.keys(ventilation).length > 0) {
-      await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
+  // Nouvelle fonction pour soumettre les ventilations
+  const submitVentilations = async () => {
+    // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
+    for (let i = 0; i < tempVentilations.length; i++) {
+      const ventilation = tempVentilations[i];
+      // Vérifier si la ventilation a été modifiée
+      if (ventilation && Object.keys(ventilation).length > 0) {
+        await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
+      }
     }
-  }
-  // Réinitialiser les modifications temporaires après la soumission
-  setTempVentilations([]);
-};
+    // Réinitialiser les modifications temporaires après la soumission
+    setTempVentilations([]);
+  };
 
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
   const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
@@ -112,6 +106,7 @@ const submitVentilations = async () => {
     setVentilations(ventilations.filter((_, i) => i !== index));
   };
 
+  // Function to update a single ventilation
   const updateVentilation = async (index, fields) => {
     const ventilation = ventilations[index];
     const { data, error } = await supabase
@@ -121,30 +116,57 @@ const submitVentilations = async () => {
 
     if (error) {
       toast({
-        title: "Erreur de mise à jour",
-        description: "La mise à jour de la ventilation a échoué.",
+        title: "Error updating",
+        description: error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
-        position: "bottom",
       });
-      console.error('Error updating ventilation', error);
     } else {
-      // Mettre à jour l'état local pour refléter les changements dans l'interface utilisateur
+      // Update the local state to reflect changes
       const updatedVentilations = [...ventilations];
-      updatedVentilations[index] = { ...updatedVentilations[index], ...fields };
+      updatedVentilations[index] = { ...ventilation, ...fields };
       setVentilations(updatedVentilations);
-
       toast({
-        title: "Mise à jour réussie",
-        description: "La ventilation a été mise à jour avec succès.",
+        title: "Update Successful",
+        description: "The ventilation has been updated successfully.",
         status: "success",
         duration: 5000,
         isClosable: true,
-        position: "bottom",
       });
     }
   };
+
+  // Function to delete a ventilation
+  const deleteVentilation = async (index) => {
+    const ventilation = ventilations[index];
+    const { error } = await supabase
+      .from('ventilations')
+      .delete()
+      .eq('id', ventilation.id);
+
+    if (error) {
+      toast({
+        title: "Error deleting",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      // Remove the ventilation from local state
+      const updatedVentilations = ventilations.filter((_, i) => i !== index);
+      setVentilations(updatedVentilations);
+      toast({
+        title: "Deletion Successful",
+        description: "The ventilation has been deleted successfully.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
 
   const handleCategorySelect = (index, category) => {
     updateVentilation(index, { category });
@@ -297,8 +319,7 @@ const submitVentilations = async () => {
                           icon={<FcSupport />}
                           size="sm"
                           variant="ghost"
-                          onClick={submitVentilations} // Appeler la fonction pour soumettre les modifications
-                          mr={2}
+                          onClick={() => updateVentilation(index, { category: ventilation.category, amount: ventilation.amount })}
                         />
                       </Tooltip>
 
@@ -308,8 +329,7 @@ const submitVentilations = async () => {
                           icon={<FcFullTrash />}
                           size="sm"
                           variant="ghost"
-                          onClick={() => removeVentilation(index)}
-                          color={iconColor}
+                          onClick={() => deleteVentilation(index)}
                         />
                       </Tooltip>
                     </Box>

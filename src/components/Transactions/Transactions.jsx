@@ -14,6 +14,8 @@ import TransactionDetailHeader from './components/transactiondetail/TransactionD
 import TransactionDetails from './components/TransactionDetails';
 import AccountSummary from './components/AccountSummary';
 import CategoryComponent from './components/CategoryComponent';
+import TransactionForm from './components/creertransaction/TransactionForm';
+import TransactionsList from './components/TransactionsList';
 
 function Transactions() {
   const { isOpen: isDetailOpen, onToggle: onDetailToggle } = useDisclosure();
@@ -26,8 +28,8 @@ function Transactions() {
         <TransactionsHeader onToggleFilter={onFilterToggle} />
         <Box maxWidth="1000px" textAlign="center" mx="auto">
           <AccountSummary/>
-          <div onClick={onDetailToggle}>
-            <TransactionItem onOpenUploadModal={onOpen} />
+          <div >
+          <TransactionsList />
           </div>
         </Box>
       </Box>

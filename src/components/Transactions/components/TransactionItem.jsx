@@ -43,23 +43,28 @@ import { FcApproval } from "react-icons/fc";
 
 function TransactionItem({ transaction }) {
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
-  const [tempVentilations, setTempVentilations] = useState([]); // Nouvel état pour stocker les modifications temporaires
+  const [tempVentilations, setTempVentilations] = useState(ventilations);
   // Autres hooks et fonctions inchangés...
 
 
-  // Nouvelle fonction pour soumettre les ventilations
   const submitVentilations = async () => {
-    // Parcourir les ventilations temporairement modifiées et les soumettre à la base de données
     for (let i = 0; i < tempVentilations.length; i++) {
-      const ventilation = tempVentilations[i];
-      // Vérifier si la ventilation a été modifiée
-      if (ventilation && Object.keys(ventilation).length > 0) {
-        await updateVentilation(i, ventilation); // Mettre à jour la ventilation dans la base de données
+      const tempVent = tempVentilations[i];
+      if (ventilations[i].category !== tempVent.category || ventilations[i].amount !== tempVent.amount) {
+        await updateVentilation(tempVent.id, { category: tempVent.category, amount: tempVent.amount });
       }
     }
-    // Réinitialiser les modifications temporaires après la soumission
-    setTempVentilations([]);
+    // After updating the database, sync the ventilations state with tempVentilations
+    setVentilations(tempVentilations);
+    toast({
+      title: "Changes Applied",
+      description: "All changes have been successfully applied to the database.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
   };
+
 
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
   const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
@@ -169,12 +174,17 @@ function TransactionItem({ transaction }) {
 
 
   const handleCategorySelect = (index, category) => {
-    updateVentilation(index, { category });
+    const newVentilations = [...tempVentilations];
+    newVentilations[index] = { ...newVentilations[index], category };
+    setTempVentilations(newVentilations);
   };
 
   const handleAmountChange = (index, amount) => {
-    updateVentilation(index, { amount: parseFloat(amount) });
+    const newVentilations = [...tempVentilations];
+    newVentilations[index] = { ...newVentilations[index], amount: parseFloat(amount) };
+    setTempVentilations(newVentilations);
   };
+
 
   const [annotation, setAnnotation] = useState('');
 
@@ -302,72 +312,71 @@ function TransactionItem({ transaction }) {
       </Flex>
 
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
-  <ModalOverlay />
-  <ModalContent>
-    <ModalHeader>Edit Ventilation</ModalHeader>
-    <ModalBody>
-      <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-        <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
-        {ventilations.map((ventilation, index) => (
-          <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
-            <Flex justify="space-between" align="center">
-              <Text fontWeight="medium">Ventilation {index + 1}</Text>
-            </Flex>
-            <Stack spacing={4} mt={4}>
-              <FormControl>
-                <FormLabel>Catégorie</FormLabel>
-                <Select
-                  placeholder="Sélectionnez une catégorie..."
-                  value={ventilation.category || ''}
-                  onChange={(e) => handleCategorySelect(index, e.target.value)}
-                >
-                  {Object.keys(categories).map(categoryKey => (
-                    categories[categoryKey].map(item => (
-                      <option value={item} key={item}>{item}</option>
-                    ))
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel>Montant</FormLabel>
-                <InputGroup>
-                  <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
-                  <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
-                </InputGroup>
-              </FormControl>
-            </Stack>
-          </Box>
-        ))}
-        <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
-          Ajouter une ventilation
-        </Button>
-      </Box>
-    </ModalBody>
-    <ModalFooter>
-      <Tooltip label="Apply changes to all ventilations" placement="top">
-        <IconButton
-          aria-label="Apply changes"
-          icon={<FcSupport />}
-          size="sm"
-          variant="ghost"
-          onClick={submitVentilations}
-          mr={2}
-        />
-      </Tooltip>
-      <Tooltip label="Delete all ventilations" placement="top">
-        <IconButton
-          aria-label="Remove all ventilations"
-          icon={<FcFullTrash />}
-          size="sm"
-          variant="ghost"
-          onClick={() => setVentilations([])}
-        />
-      </Tooltip>
-      <Button onClick={onVentilationModalClose}>Close</Button>
-    </ModalFooter>
-  </ModalContent>
-</Modal>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Edit Ventilation</ModalHeader>
+          <ModalBody>
+            <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+              <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+              {tempVentilations.map((ventilation, index) => (
+                <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+                  <Flex justify="space-between" align="center">
+                    <Text fontWeight="medium">Ventilation {index + 1}</Text>
+                  </Flex>
+                  <Stack spacing={4} mt={4}>
+                    <FormControl>
+                      <FormLabel>Catégorie</FormLabel>
+                      <Select
+                        placeholder="Sélectionnez une catégorie..."
+                        value={ventilation.category}
+                        onChange={(e) => handleCategorySelect(index, e.target.value)}
+                      >
+                        {Object.keys(categories).map(categoryKey => (
+                          categories[categoryKey].map(item => (
+                            <option value={item} key={item}>{item}</option>
+                          ))
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Montant</FormLabel>
+                      <InputGroup>
+                        <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
+                        <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
+                      </InputGroup>
+                    </FormControl>
+                  </Stack>
+                </Box>
+              ))}
+              <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
+                Ajouter une ventilation
+              </Button>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Tooltip label="Apply changes to all ventilations" placement="top">
+              <IconButton
+                aria-label="Apply changes"
+                icon={<FcSupport />}
+                size="sm"
+                variant="ghost"
+                onClick={submitVentilations}
+                mr={2}
+              />
+            </Tooltip>
+            <Tooltip label="Delete all ventilations" placement="top">
+              <IconButton
+                aria-label="Remove all ventilations"
+                icon={<FcFullTrash />}
+                size="sm"
+                variant="ghost"
+                onClick={() => setVentilations([])}
+              />
+            </Tooltip>
+            <Button onClick={onVentilationModalClose}>Close</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
 
       <Modal isOpen={isUploadOpen} onClose={onUploadClose} isCentered size="xl">

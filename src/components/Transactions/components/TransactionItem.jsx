@@ -57,20 +57,23 @@ function TransactionItem({ transaction }) {
 const addVentilation = () => {
   setTempVentilations([...tempVentilations, newVentilation()]);
 };
+const deleteVentilation = (index) => {
+  setTempVentilations(prevVentilations => prevVentilations.filter((_, i) => i !== index));
+};
 
-  const submitVentilations = async () => {
-    const payload = {
-        ventilations: tempVentilations.map(v => ({
-            id: v.id,
-            amount: v.amount,
-            category: v.category
-        }))
-    };
+const submitVentilations = async () => {
+  const payload = {
+    ventilations: tempVentilations.map(v => ({
+      id: v.id,
+      amount: v.amount,
+      category: v.category
+    }))
+  };
 
-    const { data, error } = await supabase
-        .from('transactions')
-        .update(payload)
-        .eq('id', transaction.id);
+  const { data, error } = await supabase
+    .from('transactions')
+    .update(payload)
+    .eq('id', transaction.id);
 
     if (error) {
         toast({
@@ -272,35 +275,43 @@ const addVentilation = () => {
             <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
               <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
               {tempVentilations.map((ventilation, index) => (
-                <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
-                  <Flex justify="space-between" align="center">
-                    <Text fontWeight="medium">Ventilation {index + 1}</Text>
-                  </Flex>
-                  <Stack spacing={4} mt={4}>
-                    <FormControl>
-                      <FormLabel>Catégorie</FormLabel>
-                      <Select
-                        placeholder="Sélectionnez une catégorie..."
-                        value={ventilation.category}
-                        onChange={(e) => handleCategorySelect(index, e.target.value)}
-                      >
-                        {Object.keys(categories).map(categoryKey => (
-                          categories[categoryKey].map(item => (
-                            <option value={item} key={item}>{item}</option>
-                          ))
-                        ))}
-                      </Select>
-                    </FormControl>
-                    <FormControl>
-                      <FormLabel>Montant</FormLabel>
-                      <InputGroup>
-                        <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
-                        <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
-                      </InputGroup>
-                    </FormControl>
-                  </Stack>
-                </Box>
-              ))}
+  <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+    <Flex justify="space-between" align="center">
+      <Text fontWeight="medium">Ventilation {index + 1}</Text>
+      <IconButton
+        aria-label="Delete ventilation"
+        icon={<FaTimes />}
+        size="sm"
+        variant="ghost"
+        colorScheme="red"
+        onClick={() => deleteVentilation(index)}
+      />
+    </Flex>
+    <Stack spacing={4} mt={4}>
+      <FormControl>
+        <FormLabel>Catégorie</FormLabel>
+        <Select
+          placeholder="Sélectionnez une catégorie..."
+          value={ventilation.category}
+          onChange={(e) => handleCategorySelect(index, e.target.value)}
+        >
+          {Object.keys(categories).map(categoryKey =>
+            categories[categoryKey].map(item => (
+              <option value={item} key={item}>{item}</option>
+            ))
+          )}
+        </Select>
+      </FormControl>
+      <FormControl>
+        <FormLabel>Montant</FormLabel>
+        <InputGroup>
+          <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
+          <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
+        </InputGroup>
+      </FormControl>
+    </Stack>
+  </Box>
+))}
               <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
                 Ajouter une ventilation
               </Button>

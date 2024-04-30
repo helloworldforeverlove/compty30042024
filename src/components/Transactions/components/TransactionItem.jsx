@@ -48,22 +48,38 @@ function TransactionItem({ transaction }) {
 
 
   const submitVentilations = async () => {
+    let hasError = false;
     for (let i = 0; i < tempVentilations.length; i++) {
       const tempVent = tempVentilations[i];
-      if (ventilations[i].category !== tempVent.category || ventilations[i].amount !== tempVent.amount) {
-        await updateVentilation(tempVent.id, { category: tempVent.category, amount: tempVent.amount });
+      // Ensure there's a change to update
+      if (tempVent && (ventilations[i].category !== tempVent.category || ventilations[i].amount !== tempVent.amount)) {
+        const result = await updateVentilation(i, { category: tempVent.category, amount: tempVent.amount });
+        if (!result) {
+          hasError = true; // Update flag if there was an error
+          break; // Optionally break if you want to stop at the first error
+        }
       }
     }
-    // After updating the database, sync the ventilations state with tempVentilations
-    setVentilations(tempVentilations);
-    toast({
-      title: "Changes Applied",
-      description: "All changes have been successfully applied to the database.",
-      status: "success",
-      duration: 5000,
-      isClosable: true,
-    });
+    if (!hasError) {
+      setVentilations([...tempVentilations]);
+      toast({
+        title: "Changes Applied",
+        description: "All changes have been successfully applied to the database.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Some changes were not applied. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
+  
 
 
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
@@ -111,14 +127,14 @@ function TransactionItem({ transaction }) {
     setVentilations(ventilations.filter((_, i) => i !== index));
   };
 
-  // Function to update a single ventilation
   const updateVentilation = async (index, fields) => {
+    if (!ventilations[index]) return false; // Check for undefined
     const ventilation = ventilations[index];
     const { data, error } = await supabase
       .from('ventilations')
       .update(fields)
       .eq('id', ventilation.id);
-
+  
     if (error) {
       toast({
         title: "Error updating",
@@ -127,20 +143,11 @@ function TransactionItem({ transaction }) {
         duration: 5000,
         isClosable: true,
       });
-    } else {
-      // Update the local state to reflect changes
-      const updatedVentilations = [...ventilations];
-      updatedVentilations[index] = { ...ventilation, ...fields };
-      setVentilations(updatedVentilations);
-      toast({
-        title: "Update Successful",
-        description: "The ventilation has been updated successfully.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
+      return false;
     }
+    return true;
   };
+  
 
   // Function to delete a ventilation
   const deleteVentilation = async (index) => {

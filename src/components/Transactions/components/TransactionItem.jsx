@@ -318,18 +318,21 @@ const submitVentilations = async () => {
             </Box>
           </ModalBody>
           <ModalFooter>
-            <Tooltip label="Apply changes to all ventilations" placement="top">
-              <IconButton
-                aria-label="Apply changes"
-                icon={<FcSupport />}
-                size="sm"
-                variant="ghost"
-                onClick={submitVentilations}
-                mr={2}
-              />
-            </Tooltip>
-            <Button onClick={onVentilationModalClose}>Close</Button>
-          </ModalFooter>
+  <Tooltip label="Apply changes to all ventilations" placement="top">
+  <Button
+    leftIcon={<Icon as={FcSupport} />}
+    colorScheme="blue"
+    onClick={submitVentilations}
+    mr={2}
+    variant="ghost"
+    aria-label="Apply changes"
+  >
+    Enregistrer
+  </Button>
+  </Tooltip>
+  <Button onClick={onVentilationModalClose}>Close</Button>
+</ModalFooter>
+
         </ModalContent>
       </Modal>
 

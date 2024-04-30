@@ -51,44 +51,48 @@ function TransactionItem({ transaction }) {
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
   const [tempVentilations, setTempVentilations] = useState(ventilations);
   // Autres hooks et fonctions inchangés...
+  const newVentilation = () => {
+    return { id: ventilations.length + 1, category: '', amount: '' };
+};
+const addVentilation = () => {
+  setTempVentilations([...tempVentilations, newVentilation()]);
+};
+
   const submitVentilations = async () => {
-    // Structure the payload to match the JSONB structure expected by the database
     const payload = {
-      ventilations: tempVentilations.map(v => ({
-        id: v.id, // Ensure that each ventilation has an ID
-        amount: v.amount,
-        category: v.category
-      }))
+        ventilations: tempVentilations.map(v => ({
+            id: v.id,
+            amount: v.amount,
+            category: v.category
+        }))
     };
-  
-    // Update the transaction record in the database
+
     const { data, error } = await supabase
-      .from('transactions')
-      .update(payload)
-      .eq('id', transaction.id); // Assuming `transaction.id` is the identifier for the transaction
-  
+        .from('transactions')
+        .update(payload)
+        .eq('id', transaction.id);
+
     if (error) {
-      toast({
-        title: "Error updating ventilations",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      console.error("Error updating ventilations:", error);
+        toast({
+            title: "Error updating ventilations",
+            description: error.message,
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+        });
+        console.error("Error updating ventilations:", error);
     } else {
-      // On success, update the local state to reflect the changes
-      setVentilations([...tempVentilations]);
-      toast({
-        title: "Ventilations Updated",
-        description: "Ventilations have been successfully updated.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-      console.log("Ventilations updated successfully:", data);
+        setVentilations([...tempVentilations]);
+        toast({
+            title: "Ventilations Updated",
+            description: "Ventilations have been successfully updated.",
+            status: "success",
+            duration: 5000,
+            isClosable: true,
+        });
+        console.log("Ventilations updated successfully:", data);
     }
-  };
+};
 
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
@@ -121,11 +125,6 @@ function TransactionItem({ transaction }) {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const hoverBg = useColorModeValue("green.100", "green.700");
   const activeBg = useColorModeValue("blue.300", "blue.800");
-
-  const addVentilation = () => {
-    const newId = ventilations.length + 1;
-    setVentilations([...ventilations, { id: newId, category: '', amount: '', selectedCategory: '' }]);
-  };
 
   
 

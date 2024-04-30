@@ -355,14 +355,12 @@ function TransactionItem({ transaction }) {
                       <Select
                         placeholder="Sélectionnez une catégorie..."
                         value={ventilation.category || ''}
-                        onChange={(e) => handleCategorySelect(index, e.target.value)}
+                        onChange={(e) => handleCategorySelect(index, e.target.value)} // Pass index as the first argument
                       >
                         {Object.keys(categories).map(categoryKey => (
-                          <optgroup label={categoryKey} key={categoryKey}>
-                            {categories[categoryKey].map(item => (
-                              <option value={item} key={item}>{item}</option>
-                            ))}
-                          </optgroup>
+                          categories[categoryKey].map(item => (
+                            <option value={item} key={item}>{item}</option>
+                          ))
                         ))}
                       </Select>
                     </FormControl>

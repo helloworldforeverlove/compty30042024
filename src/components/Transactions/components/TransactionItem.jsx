@@ -42,58 +42,62 @@ import { useToast } from '@chakra-ui/react';
 import { FcApproval } from "react-icons/fc";
 
 function TransactionItem({ transaction }) {
+  const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
+  const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
+  const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
+  const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
+  
+
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
   const [tempVentilations, setTempVentilations] = useState(ventilations);
   // Autres hooks et fonctions inchangés...
-
-
   const submitVentilations = async () => {
-    let hasError = false;
-    for (let i = 0; i < tempVentilations.length; i++) {
-      const tempVent = tempVentilations[i];
-      // Ensure there's a change to update
-      if (tempVent && (ventilations[i].category !== tempVent.category || ventilations[i].amount !== tempVent.amount)) {
-        const result = await updateVentilation(i, { category: tempVent.category, amount: tempVent.amount });
-        if (!result) {
-          hasError = true; // Update flag if there was an error
-          break; // Optionally break if you want to stop at the first error
-        }
-      }
-    }
-    if (!hasError) {
-      setVentilations([...tempVentilations]);
+    // Structure the payload to match the JSONB structure expected by the database
+    const payload = {
+      ventilations: tempVentilations.map(v => ({
+        id: v.id, // Ensure that each ventilation has an ID
+        amount: v.amount,
+        category: v.category
+      }))
+    };
+  
+    // Update the transaction record in the database
+    const { data, error } = await supabase
+      .from('transactions')
+      .update(payload)
+      .eq('id', transaction.id); // Assuming `transaction.id` is the identifier for the transaction
+  
+    if (error) {
       toast({
-        title: "Changes Applied",
-        description: "All changes have been successfully applied to the database.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Some changes were not applied. Please try again.",
+        title: "Error updating ventilations",
+        description: error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
+      console.error("Error updating ventilations:", error);
+    } else {
+      // On success, update the local state to reflect the changes
+      setVentilations([...tempVentilations]);
+      toast({
+        title: "Ventilations Updated",
+        description: "Ventilations have been successfully updated.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      console.log("Ventilations updated successfully:", data);
     }
   };
-  
 
 
-  const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose, onClose } = useDisclosure();
-  const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
-  const { isOpen: isDetailOpen, onToggle: onDetailToggle } = useDisclosure();
-  const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
   const bgColor = useColorModeValue('gray.50', 'gray.700');
   const dateColor = useColorModeValue('gray.600', 'gray.300');
   const amountColor = useColorModeValue('red.500', 'red.300');
   const hoverBgColor = useColorModeValue('gray.100', 'gray.600');
-  const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
   const toast = useToast();
   const [activeVentilationIndex, setActiveVentilationIndex] = useState(null);
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedItem, setSelectedItem] = useState('');  
 
   const categories = {
     Revenues: ['Apport personnel', 'Recette', 'Recette secondaire', 'Redevance de collaboration perçue', 'Autre gain divers', 'Vente d’une immobilisation', 'Emprunt', 'Caution reçue'],
@@ -185,12 +189,12 @@ function TransactionItem({ transaction }) {
     newVentilations[index] = { ...newVentilations[index], category };
     setTempVentilations(newVentilations);
   };
-
+  
   const handleAmountChange = (index, amount) => {
     const newVentilations = [...tempVentilations];
     newVentilations[index] = { ...newVentilations[index], amount: parseFloat(amount) };
     setTempVentilations(newVentilations);
-  };
+  };  
 
 
   const [annotation, setAnnotation] = useState('');
@@ -394,7 +398,7 @@ function TransactionItem({ transaction }) {
             <IconButton
               aria-label="Close modal"
               icon={<FaTimes />}
-              onClick={onClose}
+              onClick={onUploadClose}
               position="absolute"
               right="8px"
               top="8px"
@@ -428,7 +432,7 @@ function TransactionItem({ transaction }) {
             </VStack>
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="pink" onClick={onClose}>
+            <Button colorScheme="pink" onClick={onUploadClose}>
               Fermer
             </Button>
           </ModalFooter>

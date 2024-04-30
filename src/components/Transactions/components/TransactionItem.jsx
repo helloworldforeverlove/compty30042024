@@ -247,27 +247,30 @@ function TransactionItem({ transaction }) {
             )}
           </Box>
         </Tooltip>
-        {transaction.ventilations && transaction.ventilations.map((ventilation, index) => (
-          <Box
-            p={4}
-            onClick={() => openVentilationDetailModal(index)}
-            cursor="pointer"
-            bg={hoverBgColor}
-            color="gray.500"
-            fontSize="lg"
-            key={index}
-            _hover={{ textDecoration: 'underline', cursor: 'pointer' }}
-          >
-            <Flex direction="row" align="center" gap="2">
-              <Text fontSize="sm" fontWeight="bold">
-                {ventilation.category}
-              </Text>
-              <Text fontSize="sm">
-                {ventilation.amount} €
-              </Text>
-            </Flex>
-          </Box>
-        ))}
+        <Box>
+          {transaction.ventilations && transaction.ventilations.map((ventilation, index) => (
+            <Box
+              key={index}
+              p={1}
+              onClick={() => openVentilationDetailModal(index)}
+              cursor="pointer"
+              bg={hoverBgColor}
+              color="gray.500"
+              fontSize="lg"
+              _hover={{  cursor: 'pointer' }}
+              borderRadius={4}
+            >
+              <Flex direction="row" align="center" gap="2">
+                <Text fontSize="sm" fontWeight="bold">
+                  {ventilation.category}
+                </Text>
+                <Text fontSize="sm">
+                  {ventilation.amount} €
+                </Text>
+              </Flex>
+            </Box>
+          ))}
+        </Box>
         <Text fontSize="lg" fontWeight="bold" color={amountColor} onClick={onDetailToggle}>
           {`${transaction.montant_total.toFixed(2)} €`}
         </Text>
@@ -338,15 +341,15 @@ function TransactionItem({ transaction }) {
                 Enregistrer
               </Button>
             </Tooltip>
-            <Button 
-            onClick={onVentilationModalClose} 
-            leftIcon={<Icon as={FcWorkflow} />}
-            mr={2}
-            variant="ghost"
-            aria-label="Appliquer les modifications"
+            <Button
+              onClick={onVentilationModalClose}
+              leftIcon={<Icon as={FcWorkflow} />}
+              mr={2}
+              variant="ghost"
+              aria-label="Appliquer les modifications"
             >
               Fermer
-              </Button>
+            </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

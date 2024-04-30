@@ -328,15 +328,6 @@ const submitVentilations = async () => {
                 mr={2}
               />
             </Tooltip>
-            <Tooltip label="Delete all ventilations" placement="top">
-              <IconButton
-                aria-label="Remove all ventilations"
-                icon={<FcFullTrash />}
-                size="sm"
-                variant="ghost"
-                onClick={() => setVentilations([])}
-              />
-            </Tooltip>
             <Button onClick={onVentilationModalClose}>Close</Button>
           </ModalFooter>
         </ModalContent>

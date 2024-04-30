@@ -27,6 +27,7 @@ import {
   SimpleGrid,
   Heading,
   Tag,
+  Select,
 } from '@chakra-ui/react';
 import { CiPen } from "react-icons/ci";
 import { supabase } from './../../../supabaseClient'
@@ -34,7 +35,7 @@ import { GoPaperclip } from 'react-icons/go';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import { MdEuro } from 'react-icons/md';
-import { FcFullTrash,FcSupport, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
+import { FcFullTrash, FcSupport, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
 import TransactionDetailHeader from './transactiondetail/TransactionDetailHeader';
 import TransactionDetail from './transactiondetail/TransactionDetail';
 import { useToast } from '@chakra-ui/react';
@@ -102,18 +103,19 @@ function TransactionItem({ transaction }) {
     let updatedVentilations = [...ventilations];
     updatedVentilations[activeVentilationIndex] = {
       ...updatedVentilations[activeVentilationIndex],
-      category: category 
+      category: category
     };
     setVentilations(updatedVentilations);
-    onCategoryModalClose();
+    onCategoryModalClose(); // Close the modal after selecting a category
   };
-  
+
+
   const updateVentilation = async (ventilationId, newCategory) => {
     const { data, error } = await supabase
       .from('ventilations')
       .update({ category: newCategory })
       .eq('id', ventilationId);
-  
+
     if (error) {
       toast({
         title: "Erreur de mise à jour",
@@ -135,7 +137,7 @@ function TransactionItem({ transaction }) {
       });
       console.log('Ventilation updated successfully', data);
     }
-  };  
+  };
 
   const [annotation, setAnnotation] = useState('');
 
@@ -143,7 +145,7 @@ function TransactionItem({ transaction }) {
     const { data, error } = await supabase
       .from('transactions')
       .update({ annotations: annotation })
-      .eq('id', transaction.id); 
+      .eq('id', transaction.id);
 
     if (error) {
       toast({
@@ -170,13 +172,13 @@ function TransactionItem({ transaction }) {
     onAnnotationModalClose();
   };
   function isJustificatifNotEmpty(justificatifsUrl) {
-    if (!justificatifsUrl) return false; 
-    if (Array.isArray(justificatifsUrl) && justificatifsUrl.length === 0) return false; 
-    if (justificatifsUrl === "[]") return false; 
-    return true; 
+    if (!justificatifsUrl) return false;
+    if (Array.isArray(justificatifsUrl) && justificatifsUrl.length === 0) return false;
+    if (justificatifsUrl === "[]") return false;
+    return true;
   }
   const openVentilationDetailModal = (index) => {
-    onVentilationModalOpen(); 
+    onVentilationModalOpen();
 
   };
   useEffect(() => {
@@ -222,8 +224,8 @@ function TransactionItem({ transaction }) {
         </Tooltip>
         <Tooltip hasArrow label="Cliquer pour Annoter" placement="top" closeOnClick={false}>
           <Box onClick={() => {
-            setAnnotation(transaction.annotations || ''); 
-            onAnnotationModalOpen(); 
+            setAnnotation(transaction.annotations || '');
+            onAnnotationModalOpen();
           }} display="flex" alignItems="center">
             <Text fontWeight="medium" mr={2}>
               {transaction.libelle}
@@ -237,19 +239,19 @@ function TransactionItem({ transaction }) {
           </Box>
         </Tooltip>
         {transaction.ventilations && transaction.ventilations.map((ventilation, index) => (
-        <Box
-          p={4}
-          onClick={() => openVentilationDetailModal(index)} 
-          cursor="pointer"
-          bg={hoverBgColor}
-          color="gray.500"
-          fontSize="lg"
-          key={index}
-          _hover={{ textDecoration: 'underline', cursor: 'pointer' }}
-        >
-          {/* Mapping over the ventilations array */}
+          <Box
+            p={4}
+            onClick={() => openVentilationDetailModal(index)}
+            cursor="pointer"
+            bg={hoverBgColor}
+            color="gray.500"
+            fontSize="lg"
+            key={index}
+            _hover={{ textDecoration: 'underline', cursor: 'pointer' }}
+          >
+            {/* Mapping over the ventilations array */}
 
-            <Flex  direction="row" align="center" gap="2">
+            <Flex direction="row" align="center" gap="2">
               <Text fontSize="sm" fontWeight="bold">
                 {ventilation.category}
               </Text>
@@ -258,8 +260,8 @@ function TransactionItem({ transaction }) {
               </Text>
             </Flex>
 
-        </Box>
-                  ))}
+          </Box>
+        ))}
         <Text fontSize="lg" fontWeight="bold" color={amountColor} onClick={onDetailToggle}>
           {`${transaction.montant_total.toFixed(2)} €`}
         </Text>
@@ -281,45 +283,45 @@ function TransactionItem({ transaction }) {
             />
           </ModalHeader>
           <ModalBody>
-          <Container maxW="container.xxl">
-      <Input
-        value={selectedItem}
-        placeholder="Click on an item to see it here..."
-        
-        mb={4}
-      />
-      <SimpleGrid columns={6} spacing={5}>
-  {Object.keys(categories).map((categoryKey) => (
-    <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-      <Flex align="center" fontSize="xl">
-        {icons[categoryKey]}
-        <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-      </Flex>
-      <VStack align="start">
-        {categories[categoryKey].map((item, index) => (
-          <Tag size="md" variant="solid" key={index} _hover={{
-            background: hoverBg,
-            transform: 'scale(1.1)',
-            transition: 'background-color 0.2s, transform 0.2s'
-          }} _active={{
-            background: activeBg,
-            transform: 'scale(0.9)',
-            transition: 'background-color 0.1s, transform 0.1s'
-          }} onClick={(event) => {
-            event.preventDefault();
-            setSelectedItem(item);
-            handleCategorySelect(item);
-          }}>
-            {item}
-          </Tag>
-        ))}
-      </VStack>
-    </Box>
-  ))}
-</SimpleGrid>
+            <Container maxW="container.xxl">
+              <Input
+                value={selectedItem}
+                placeholder="Click on an item to see it here..."
+
+                mb={4}
+              />
+              <SimpleGrid columns={6} spacing={5}>
+                {Object.keys(categories).map((categoryKey) => (
+                  <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
+                    <Flex align="center" fontSize="xl">
+                      {icons[categoryKey]}
+                      <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
+                    </Flex>
+                    <VStack align="start">
+                      {categories[categoryKey].map((item, index) => (
+                        <Tag size="md" variant="solid" key={index} _hover={{
+                          background: hoverBg,
+                          transform: 'scale(1.1)',
+                          transition: 'background-color 0.2s, transform 0.2s'
+                        }} _active={{
+                          background: activeBg,
+                          transform: 'scale(0.9)',
+                          transition: 'background-color 0.1s, transform 0.1s'
+                        }} onClick={(event) => {
+                          event.preventDefault();
+                          setSelectedItem(item);
+                          handleCategorySelect(item);
+                        }}>
+                          {item}
+                        </Tag>
+                      ))}
+                    </VStack>
+                  </Box>
+                ))}
+              </SimpleGrid>
 
 
-    </Container>
+            </Container>
           </ModalBody>
         </ModalContent>
       </Modal>
@@ -329,51 +331,58 @@ function TransactionItem({ transaction }) {
           <ModalHeader>Edit Ventilation</ModalHeader>
           <ModalBody>
             <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-            <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
-            {ventilations.map((ventilation, index) => (
-  <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
-    <Flex justify="space-between" align="center">
-      <Text fontWeight="medium">Ventilation {index + 1}</Text>
-      <Box>
-        <IconButton
-          aria-label="Edit category"
-          icon={<FcSupport />}
-          size="sm"
-          variant="ghost"
-          onClick={() => openCategoryModal(index)}
-          mr={2}
-        />
-        <IconButton
-          aria-label="Remove ventilation"
-          icon={<FcFullTrash />}
-          size="sm"
-          variant="ghost"
-          onClick={() => removeVentilation(index)}
-          color={iconColor}
-        />
-      </Box>
-    </Flex>
-    <Stack spacing={4} mt={4}>
-      <FormControl>
-        <FormLabel>Catégorie</FormLabel>
-        <Input
-          placeholder="Sélectionnez une catégorie..."
-    onClick={onCategoryModalOpen} 
-          value={ventilations[index]?.category || ''}
-    mb={4}
-     
-        />
-      </FormControl>
-      <FormControl>
-        <FormLabel>Montant</FormLabel>
-        <InputGroup>
-          <Input type="number" value={ventilation.amount} onChange={(e) => handleAmountChange(index, e.target.value)} />
-          <InputRightElement pointerEvents="none" children={<MdEuro color={iconColor} />} />
-        </InputGroup>
-      </FormControl>
-    </Stack>
-  </Box>
-))}
+              <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+              {ventilations.map((ventilation, index) => (
+                <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+                  <Flex justify="space-between" align="center">
+                    <Text fontWeight="medium">Ventilation {index + 1}</Text>
+                    <Box>
+                      <IconButton
+                        aria-label="Edit category"
+                        icon={<FcSupport />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => openCategoryModal(index)}
+                        mr={2}
+                      />
+                      <IconButton
+                        aria-label="Remove ventilation"
+                        icon={<FcFullTrash />}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeVentilation(index)}
+                        color={iconColor}
+                      />
+                    </Box>
+                  </Flex>
+                  <Stack spacing={4} mt={4}>
+                    <FormControl>
+                      <FormLabel>Catégorie</FormLabel>
+                      <Select
+                        placeholder="Sélectionnez une catégorie..."
+                        onChange={(e) => handleCategorySelect(e.target.value)} // Call handleCategorySelect on change
+                        value={ventilations[index]?.category || ''}
+                        mb={4}
+                      >
+                        {Object.keys(categories).map((categoryKey) => (
+                          <optgroup label={categoryKey} key={categoryKey}>
+                            {categories[categoryKey].map((item) => (
+                              <option value={item} key={item}>{item}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Montant</FormLabel>
+                      <InputGroup>
+                        <Input type="number" value={ventilation.amount} onChange={(e) => handleAmountChange(index, e.target.value)} />
+                        <InputRightElement pointerEvents="none" children={<MdEuro color={iconColor} />} />
+                      </InputGroup>
+                    </FormControl>
+                  </Stack>
+                </Box>
+              ))}
               <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
                 Ajouter une ventilation
               </Button>
@@ -394,36 +403,36 @@ function TransactionItem({ transaction }) {
                   </ModalHeader>
                   <ModalBody>
                     <Container maxW="container.xxl">
-                    <SimpleGrid columns={6} spacing={5}>
-  {Object.keys(categories).map((categoryKey) => (
-    <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-      <Flex align="center" fontSize="xl">
-        {icons[categoryKey]}
-        <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-      </Flex>
-      <VStack align="start">
-        {categories[categoryKey].map((item, index) => (
-          <Tag size="md" variant="solid" key={index} _hover={{
-            background: hoverBg,
-            transform: 'scale(1.1)',
-            transition: 'background-color 0.2s, transform 0.2s'
-          }} _active={{
-            background: activeBg,
-            transform: 'scale(0.9)',
-            transition: 'background-color 0.1s, transform 0.1s'
-          }} onClick={(event) => {
-            event.preventDefault();
-            setSelectedItem(item);
+                      <SimpleGrid columns={6} spacing={5}>
+                        {Object.keys(categories).map((categoryKey) => (
+                          <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
+                            <Flex align="center" fontSize="xl">
+                              {icons[categoryKey]}
+                              <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
+                            </Flex>
+                            <VStack align="start">
+                              {categories[categoryKey].map((item, index) => (
+                                <Tag size="md" variant="solid" key={index} _hover={{
+                                  background: hoverBg,
+                                  transform: 'scale(1.1)',
+                                  transition: 'background-color 0.2s, transform 0.2s'
+                                }} _active={{
+                                  background: activeBg,
+                                  transform: 'scale(0.9)',
+                                  transition: 'background-color 0.1s, transform 0.1s'
+                                }} onClick={(event) => {
+                                  event.preventDefault();
+                                  setSelectedItem(item);
                                   handleCategorySelect(item); // This will invoke the update on the actual ventilations array
-          }}>
-            {item}
-          </Tag>
-                            
-        ))}
-      </VStack>
-    </Box>
-  ))}
-</SimpleGrid>
+                                }}>
+                                  {item}
+                                </Tag>
+
+                              ))}
+                            </VStack>
+                          </Box>
+                        ))}
+                      </SimpleGrid>
 
                     </Container>
                   </ModalBody>

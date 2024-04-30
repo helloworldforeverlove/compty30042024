@@ -90,9 +90,43 @@ function TransactionItem({ transaction }) {
 
   const openCategoryModal = (index) => {
     setActiveVentilationIndex(index);
-    setIsCategoryModalOpen(true);
+    setSelectedItem(ventilations[index].category);
+    onCategoryModalOpen();
   };
-
+  
+  <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose}>
+    <ModalOverlay />
+    <ModalContent>
+      <ModalHeader>Modifier la ventilation</ModalHeader>
+      <ModalBody>
+        <FormControl isRequired>
+          <FormLabel>Catégorie</FormLabel>
+          <Select value={selectedItem || ''} onChange={(e) => setSelectedItem(e.target.value)}>
+            {Object.keys(categories).map(categoryKey => categories[categoryKey].map(item => (
+              <option value={item} key={item}>{item}</option>
+            )))}
+          </Select>
+        </FormControl>
+        <FormControl mt={4} isRequired>
+          <FormLabel>Montant</FormLabel>
+          <InputGroup>
+            <Input
+              type="number"
+              value={ventilations[activeVentilationIndex]?.amount || ''}
+              onChange={(e) => handleAmountChange(activeVentilationIndex, e.target.value)}
+            />
+            <InputRightElement children={<MdEuro />} />
+          </InputGroup>
+        </FormControl>
+      </ModalBody>
+      <ModalFooter>
+        <Button colorScheme="blue" onClick={() => updateVentilation(activeVentilationIndex, { category: selectedItem, amount: parseFloat(ventilations[activeVentilationIndex]?.amount) })}>
+          Sauvegarder
+        </Button>
+        <Button variant="ghost" onClick={onCategoryModalClose}>Annuler</Button>
+      </ModalFooter>
+    </ModalContent>
+  </Modal>  
   const updateVentilation = async (index, fields) => {
     const ventilation = ventilations[index];
     const { data, error } = await supabase
@@ -245,8 +279,6 @@ function TransactionItem({ transaction }) {
             key={index}
             _hover={{ textDecoration: 'underline', cursor: 'pointer' }}
           >
-            {/* Mapping over the ventilations array */}
-
             <Flex direction="row" align="center" gap="2">
               <Text fontSize="sm" fontWeight="bold">
                 {ventilation.category}
@@ -255,7 +287,6 @@ function TransactionItem({ transaction }) {
                 {ventilation.amount} €
               </Text>
             </Flex>
-
           </Box>
         ))}
         <Text fontSize="lg" fontWeight="bold" color={amountColor} onClick={onDetailToggle}>

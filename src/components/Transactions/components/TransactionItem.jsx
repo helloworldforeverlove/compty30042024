@@ -40,13 +40,18 @@ import TransactionDetailHeader from './transactiondetail/TransactionDetailHeader
 import TransactionDetail from './transactiondetail/TransactionDetail';
 import { useToast } from '@chakra-ui/react';
 import { FcApproval } from "react-icons/fc";
+import CategorySelectionModal from './CategorySelectionModal';
 
 function TransactionItem({ transaction }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
   const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
   const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
   const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
-
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const openCategoryModal = (index) => {
+    setActiveVentilationIndex(index);
+    setIsCategoryModalOpen(true);
+  };
 
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
   const [tempVentilations, setTempVentilations] = useState(ventilations);
@@ -129,10 +134,12 @@ function TransactionItem({ transaction }) {
   const hoverBg = useColorModeValue("green.100", "green.700");
   const activeBg = useColorModeValue("blue.300", "blue.800");
 
-  const handleCategorySelect = (index, category) => {
+  // Handler to close the modal and set category
+  const handleCategorySelect = (category, index) => {
     const newVentilations = [...tempVentilations];
-    newVentilations[index] = { ...newVentilations[index], category };
+    newVentilations[index].category = category;
     setTempVentilations(newVentilations);
+    setIsCategoryModalOpen(false);
   };
 
   const handleAmountChange = (index, amount) => {
@@ -290,18 +297,20 @@ function TransactionItem({ transaction }) {
                   <Stack spacing={4} mt={4}>
                     <FormControl>
                       <FormLabel>Catégorie</FormLabel>
-                      <Select
-                        placeholder="Sélectionnez une catégorie..."
-                        value={ventilation.category}
-                        onChange={(e) => handleCategorySelect(index, e.target.value)}
-                      >
-                        {Object.keys(categories).map(categoryKey =>
-                          categories[categoryKey].map(item => (
-                            <option value={item} key={item}>{item}</option>
-                          ))
-                        )}
-                      </Select>
+                      <Input
+                        readOnly
+                        value={ventilation.category || "Select Category"}
+                        onClick={() => openCategoryModal(index)}
+                        placeholder="Select Category"
+                      />
                     </FormControl>
+                    <CategorySelectionModal
+                      categories={categories}
+                      isOpen={isCategoryModalOpen}
+                      onClose={() => setIsCategoryModalOpen(false)}
+                      onSelectCategory={handleCategorySelect}
+                      activeIndex={activeVentilationIndex}
+                    />
                     <FormControl>
                       <FormLabel>Montant</FormLabel>
                       <InputGroup>

@@ -126,10 +126,6 @@ const addVentilation = () => {
   const hoverBg = useColorModeValue("green.100", "green.700");
   const activeBg = useColorModeValue("blue.300", "blue.800");
 
-  
-
-
-
   const handleCategorySelect = (index, category) => {
     const newVentilations = [...tempVentilations];
     newVentilations[index] = { ...newVentilations[index], category };

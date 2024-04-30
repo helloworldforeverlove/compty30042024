@@ -24,7 +24,7 @@ function CategorySelectionModal({ categories, isOpen, onClose, onSelectCategory,
         </ModalHeader>
         <ModalBody>
           <Container maxW="container.xxl">
-            <SimpleGrid columns={3} spacing={5}>
+            <SimpleGrid columns={6} spacing={5}>
               {Object.keys(categories).map((categoryKey) => (
                 <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
                   <Flex align="center" fontSize="xl">

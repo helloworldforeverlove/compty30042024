@@ -79,12 +79,6 @@ function TransactionItem({ transaction }) {
   const hoverBg = useColorModeValue("green.100", "green.700");
   const activeBg = useColorModeValue("blue.300", "blue.800");
 
-  const handleAmountChange = (index, value) => {
-    const newVentilations = [...ventilations];
-    newVentilations[index].amount = value;
-    setVentilations(newVentilations);
-  };
-
   const addVentilation = () => {
     const newId = ventilations.length + 1;
     setVentilations([...ventilations, { id: newId, category: '', amount: '', selectedCategory: '' }]);
@@ -99,22 +93,12 @@ function TransactionItem({ transaction }) {
     setIsCategoryModalOpen(true);
   };
 
-  const handleCategorySelect = (category) => {
-    let updatedVentilations = [...ventilations];
-    updatedVentilations[activeVentilationIndex] = {
-      ...updatedVentilations[activeVentilationIndex],
-      category: category
-    };
-    setVentilations(updatedVentilations);
-    onCategoryModalClose(); // Close the modal after selecting a category
-  };
-
-
-  const updateVentilation = async (ventilationId, newCategory) => {
+  const updateVentilation = async (index, fields) => {
+    const ventilation = ventilations[index];
     const { data, error } = await supabase
       .from('ventilations')
-      .update({ category: newCategory })
-      .eq('id', ventilationId);
+      .update(fields)
+      .eq('id', ventilation.id);
 
     if (error) {
       toast({
@@ -125,8 +109,13 @@ function TransactionItem({ transaction }) {
         isClosable: true,
         position: "bottom",
       });
-      console.error('Error updating ventilation category', error);
+      console.error('Error updating ventilation', error);
     } else {
+      // Mettre à jour l'état local pour refléter les changements dans l'interface utilisateur
+      const updatedVentilations = [...ventilations];
+      updatedVentilations[index] = { ...updatedVentilations[index], ...fields };
+      setVentilations(updatedVentilations);
+
       toast({
         title: "Mise à jour réussie",
         description: "La ventilation a été mise à jour avec succès.",
@@ -135,8 +124,15 @@ function TransactionItem({ transaction }) {
         isClosable: true,
         position: "bottom",
       });
-      console.log('Ventilation updated successfully', data);
     }
+  };
+
+  const handleCategorySelect = (index, category) => {
+    updateVentilation(index, { category });
+  };
+
+  const handleAmountChange = (index, amount) => {
+    updateVentilation(index, { amount: parseFloat(amount) });
   };
 
   const [annotation, setAnnotation] = useState('');
@@ -360,13 +356,12 @@ function TransactionItem({ transaction }) {
                       <FormLabel>Catégorie</FormLabel>
                       <Select
                         placeholder="Sélectionnez une catégorie..."
-                        onChange={(e) => handleCategorySelect(e.target.value)} // Call handleCategorySelect on change
-                        value={ventilations[index]?.category || ''}
-                        mb={4}
+                        onChange={(e) => handleCategorySelect(index, e.target.value)}
+                        value={ventilation.category || ''}
                       >
-                        {Object.keys(categories).map((categoryKey) => (
+                        {Object.keys(categories).map(categoryKey => (
                           <optgroup label={categoryKey} key={categoryKey}>
-                            {categories[categoryKey].map((item) => (
+                            {categories[categoryKey].map(item => (
                               <option value={item} key={item}>{item}</option>
                             ))}
                           </optgroup>
@@ -376,8 +371,8 @@ function TransactionItem({ transaction }) {
                     <FormControl>
                       <FormLabel>Montant</FormLabel>
                       <InputGroup>
-                        <Input type="number" value={ventilation.amount} onChange={(e) => handleAmountChange(index, e.target.value)} />
-                        <InputRightElement pointerEvents="none" children={<MdEuro color={iconColor} />} />
+                        <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
+                        <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
                       </InputGroup>
                     </FormControl>
                   </Stack>

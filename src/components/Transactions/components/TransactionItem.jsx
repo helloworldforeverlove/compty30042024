@@ -35,7 +35,7 @@ import { GoPaperclip } from 'react-icons/go';
 import { FaCloudUploadAlt } from 'react-icons/fa';
 import { FaPlus, FaTimes } from 'react-icons/fa';
 import { MdEuro } from 'react-icons/md';
-import { FcFullTrash, FcSupport, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
+import { FcFullTrash, FcWorkflow, FcSupport, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
 import TransactionDetailHeader from './transactiondetail/TransactionDetailHeader';
 import TransactionDetail from './transactiondetail/TransactionDetail';
 import { useToast } from '@chakra-ui/react';
@@ -339,7 +339,15 @@ function TransactionItem({ transaction }) {
                 Enregistrer
               </Button>
             </Tooltip>
-            <Button onClick={onVentilationModalClose}>Close</Button>
+            <Button 
+            onClick={onVentilationModalClose} 
+            leftIcon={<Icon as={FcWorkflow} />}
+            mr={2}
+            variant="ghost"
+            aria-label="Apply changes"
+            >
+              Fermer
+              </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

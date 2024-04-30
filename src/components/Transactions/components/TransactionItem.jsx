@@ -55,7 +55,7 @@ function TransactionItem({ transaction }) {
 
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
   const [tempVentilations, setTempVentilations] = useState(ventilations);
-  // Autres hooks et fonctions inchangés...
+
   const newVentilation = () => {
     return { id: ventilations.length + 1, category: '', amount: '' };
   };
@@ -82,26 +82,25 @@ function TransactionItem({ transaction }) {
 
     if (error) {
       toast({
-        title: "Error updating ventilations",
+        title: "Erreur lors de la mise à jour des ventilations",
         description: error.message,
         status: "error",
         duration: 5000,
         isClosable: true,
       });
-      console.error("Error updating ventilations:", error);
+      console.error("Erreur lors de la mise à jour des ventilations :", error);
     } else {
       setVentilations([...tempVentilations]);
       toast({
-        title: "Ventilations Updated",
-        description: "Ventilations have been successfully updated.",
+        title: "Ventilations mises à jour",
+        description: "Les ventilations ont été mises à jour avec succès.",
         status: "success",
         duration: 5000,
         isClosable: true,
       });
-      console.log("Ventilations updated successfully:", data);
+      console.log("Ventilations mises à jour avec succès:", data);
     }
   };
-
 
   const bgColor = useColorModeValue('gray.50', 'gray.700');
   const dateColor = useColorModeValue('gray.600', 'gray.300');
@@ -277,7 +276,7 @@ function TransactionItem({ transaction }) {
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Edit Ventilation</ModalHeader>
+          <ModalHeader>Modifier la ventilation</ModalHeader>
           <ModalBody>
             <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
               <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
@@ -286,7 +285,7 @@ function TransactionItem({ transaction }) {
                   <Flex justify="space-between" align="center">
                     <Text fontWeight="medium">Ventilation {index + 1}</Text>
                     <IconButton
-                      aria-label="Delete ventilation"
+                      aria-label="Supprimer la ventilation"
                       icon={<FaTimes />}
                       size="sm"
                       variant="ghost"
@@ -299,9 +298,9 @@ function TransactionItem({ transaction }) {
                       <FormLabel>Catégorie</FormLabel>
                       <Input
                         readOnly
-                        value={ventilation.category || "Select Category"}
+                        value={ventilation.category || "Sélectionner une catégorie"}
                         onClick={() => openCategoryModal(index)}
-                        placeholder="Select Category"
+                        placeholder="Sélectionner une catégorie"
                       />
                     </FormControl>
                     <CategorySelectionModal
@@ -327,14 +326,14 @@ function TransactionItem({ transaction }) {
             </Box>
           </ModalBody>
           <ModalFooter>
-            <Tooltip label="Apply changes to all ventilations" placement="top">
+            <Tooltip textAlign="center" label="Appliquer les modifications à toutes les ventilations" placement="top">
               <Button
                 leftIcon={<Icon as={FcSupport} />}
                 colorScheme="blue"
                 onClick={submitVentilations}
                 mr={2}
                 variant="ghost"
-                aria-label="Apply changes"
+                aria-label="Appliquer les modifications"
               >
                 Enregistrer
               </Button>
@@ -344,7 +343,7 @@ function TransactionItem({ transaction }) {
             leftIcon={<Icon as={FcWorkflow} />}
             mr={2}
             variant="ghost"
-            aria-label="Apply changes"
+            aria-label="Appliquer les modifications"
             >
               Fermer
               </Button>

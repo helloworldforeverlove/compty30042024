@@ -13,12 +13,11 @@ import { useDropzone } from 'react-dropzone';
 import { chakra } from '@chakra-ui/react';
 import { fr } from 'date-fns/locale';
 import { LiaCloudUploadAltSolid } from "react-icons/lia";
-import { FaPlus, FaPercent, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaTimes } from 'react-icons/fa';
 import { MdEuro } from 'react-icons/md';
 import { FcFullTrash, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
 
-
-const ExpenseFormHeader = ({ onToggle, onSubmitTransaction }) => {
+const ExpenseFormHeader = ({ onToggle, onSubmitTransaction, files }) => {
   return (
     <Flex justifyContent="space-between" alignItems="center" p={4} bg="white" boxShadow="md">
       <Heading as="h3" size="lg">
@@ -28,7 +27,7 @@ const ExpenseFormHeader = ({ onToggle, onSubmitTransaction }) => {
         <Button mr={3} onClick={onToggle}>
           Fermer
         </Button>
-        <Button colorScheme="pink" onClick={onSubmitTransaction}>
+        <Button colorScheme="pink" onClick={() => onSubmitTransaction(files)}>
           Ajouter
         </Button>
       </Box>
@@ -84,10 +83,54 @@ const FilePreview = ({ file, onDelete, onSelect }) => {
   );
 };
 
-const ExpenseInformation = ({ formData, onChange }) => {
+const handleFileUpload = async (acceptedFiles) => {
+  const uploads = await Promise.all(acceptedFiles.map(async (file) => {
+
+    const fileName = `${file.name}`;
+
+    try {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('justificatifs')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error(`Error during file upload: ${uploadError.message}`);
+        return null;
+      }
+
+      const { publicURL, error: urlError } = supabase.storage
+        .from('justificatifs')
+        .getPublicUrl(fileName);
+
+      if (urlError) {
+        console.error(`Error retrieving public URL: ${urlError.message}`);
+        return null;
+      }
+
+      return { fileName, url: publicURL };
+    } catch (err) {
+      console.error(`Exception during file upload: ${err.message}`);
+      return null;
+    }
+  }));
+
+  console.log('Uploaded files:', uploads);
+
+  const successfulUploads = uploads.filter(upload => upload && upload.url);
+  const uploadedFileUrls = successfulUploads.map(upload => upload.url);
+  setUploadedFileKeys(uploadedFileUrls);
+};
+
+
+const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
   const [annotations, setAnnotations] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [files, setFiles] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(formData.date_transaction || new Date());
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    onChange({ target: { name: 'date_transaction', value: date } });
+  };
+
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
   const inputBg = useColorModeValue('gray.100', 'gray.600');
   const borderColor = useColorModeValue('gray.300', 'gray.700');
@@ -99,16 +142,15 @@ const ExpenseInformation = ({ formData, onChange }) => {
     maxSize: 10 * 1024 * 1024, // 10MB max size
     onDrop: acceptedFiles => {
       setFiles(prevFiles => {
-        // Combine the old files with the new ones and slice the array to keep only 10
         const updatedFiles = prevFiles.concat(acceptedFiles).slice(0, maxFiles);
-        // Update the previews for the new files
         return updatedFiles.map(file => Object.assign(file, {
           preview: URL.createObjectURL(file)
         }));
       });
+      handleFileUpload(acceptedFiles);
     },
-    noClick: files.length >= maxFiles, // Disables the dropzone click if the limit is reached
-    noKeyboard: files.length >= maxFiles, // Disables the dropzone keyboard behavior if the limit is reached
+    noClick: files.length >= maxFiles,
+    noKeyboard: files.length >= maxFiles,
   });
 
   const deleteFile = (fileToDelete) => {
@@ -120,11 +162,13 @@ const ExpenseInformation = ({ formData, onChange }) => {
     files.forEach(file => URL.revokeObjectURL(file.preview));
     setFiles([]);
   };
+
   const closeButtonStyle = {
     opacity: annotations ? 1 : 0,
     transition: 'opacity 0.3s ease-out',
     cursor: 'pointer'
   };
+
   const handleFileSelect = (file) => {
     setSelectedFile(file);
   };
@@ -134,13 +178,6 @@ const ExpenseInformation = ({ formData, onChange }) => {
       setSelectedFile(null);
     }
   }, [files]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-
 
   return (
     <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
@@ -152,12 +189,11 @@ const ExpenseInformation = ({ formData, onChange }) => {
 
         <FormControl id="transaction-date">
           <FormLabel>Date</FormLabel>
-          <ChakraDatePicker
-            selected={formData.date_transaction}
-            onChange={(date) => setFormData(prev => ({ ...prev, date_transaction: date }))}
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
             dateFormat="dd/MM/yyyy"
-            locale={fr}
-            customInput={<Input background={inputBg} readOnly />}
+            customInput={<Input />}
             popperPlacement="bottom-start"
             showWeekNumbers
             calendarStartDay={1}
@@ -171,7 +207,7 @@ const ExpenseInformation = ({ formData, onChange }) => {
             step="0.01"
             value={formData.montant_total}
             onChange={onChange}
-            name="montant_total" // Ensure this matches the state key
+            name="montant_total"
           />
         </FormControl>
 
@@ -182,7 +218,7 @@ const ExpenseInformation = ({ formData, onChange }) => {
               placeholder="Ajouter des mots clés"
               value={formData.annotations}
               onChange={onChange}
-              name="annotations" // Ensure this matches the state key
+              name="annotations"
             />
             {annotations && (
               <InputRightElement>
@@ -198,13 +234,14 @@ const ExpenseInformation = ({ formData, onChange }) => {
             )}
           </InputGroup>
         </FormControl>
+
         <FormControl id="transaction-justifications">
           <FormLabel>Justificatifs</FormLabel>
           <InputGroup>
             <Input
               placeholder="Ajouter des justificatifs"
               background={inputBg}
-              value={files.map(file => file.name).join(', ')}
+              value={files.map(file => `${file.name}`).join(', ')}
               onClick={() => setIsFileModalOpen(true)}
               readOnly
             />
@@ -221,11 +258,10 @@ const ExpenseInformation = ({ formData, onChange }) => {
             )}
           </InputGroup>
           {files.map((file, index) => (
-            <FilePreview key={index} file={file} onDelete={deleteFile} />
+            <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
           ))}
         </FormControl>
 
-        // Inside the ExpenseInformation component...
         <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
           <ModalOverlay />
           <ModalContent minH="80vh">
@@ -299,9 +335,9 @@ const ExpenseInformation = ({ formData, onChange }) => {
 
 const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddVentilation, onRemoveVentilation }) => {
   const [ventilationsState, setVentilations] = useState([
-    { id: 1, amount: '', percentage: 100, selectedCategory: 'Dépense personnelle' },
+    { id: 1, amount: '', selectedCategory: 'Dépense personnelle' },
   ]);
-  
+
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [activeVentilationIndex, setActiveVentilationIndex] = useState(null);
 
@@ -335,19 +371,12 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
     setVentilations(newVentilations);
   };
 
-  const handlePercentageChange = (index, value) => {
-    if (value >= 0 && value <= 100) {
-      const newVentilations = [...ventilations];
-      newVentilations[index].percentage = value;
-      setVentilations(newVentilations);
-    }
-  };
 
   const addVentilation = () => {
     const newId = ventilationsState.length + 1;
-    setVentilations([...ventilationsState, { id: newId, amount: '', percentage: 0, selectedCategory: '' }]);
+    setVentilations([...ventilationsState, { id: newId, amount: '', selectedCategory: '' }]);
   };
-  
+
 
   const removeVentilation = index => {
     setVentilations(ventilations.filter((_, i) => i !== index));
@@ -365,15 +394,12 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
   const handleCategorySelect = (category) => {
     // S'assurer que l'index est valide
     if (activeVentilationIndex != null && ventilations[activeVentilationIndex]) {
-        onVentilationChange(activeVentilationIndex, 'selectedCategory', category);
-        onCategoryModalClose();
+      onVentilationChange(activeVentilationIndex, 'selectedCategory', category);
+      onCategoryModalClose();
     } else {
-        console.error("Index de ventilation non valide lors de la sélection de la catégorie");
+      console.error("Index de ventilation non valide lors de la sélection de la catégorie");
     }
-};
-
-
-
+  };
   return (
     <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
       <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
@@ -410,24 +436,12 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
                 <InputRightElement children={<MdEuro />} />
               </InputGroup>
             </FormControl>
-            <FormControl>
-              <FormLabel>Pourcentage</FormLabel>
-              <InputGroup>
-                <Input
-                  type="number"
-                  value={vent.percentage}
-                  onChange={(e) => onVentilationChange(index, 'percentage', e.target.value)}
-                />
-                <InputRightElement children={<FaPercent />} />
-              </InputGroup>
-            </FormControl>
           </Stack>
         </Box>
       ))}
       <Button leftIcon={<FaPlus />} onClick={onAddVentilation} colorScheme="blue">
         Ajouter une ventilation
       </Button>
-      {/* Modal for category selection */}
       <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
         <ModalOverlay />
         <ModalContent m={0} maxW="100vw">
@@ -487,34 +501,36 @@ const ExpenseTransactionDetail = ({ onToggle }) => {
     date_transaction: new Date(),
     montant_total: 0,
     annotations: '',
-    justificatifs: [],
+    justificatifs_url: [],
     moyen: '',
     compte_bancaire: '',
     ventilations: [
-      { id: 1, amount: '', percentage: 100, selectedCategory: 'Dépense personnelle' }
-  ]
+      { id: 1, amount: '', selectedCategory: 'Dépense personnelle' }
+    ]
   });
+  const [files, setFiles] = useState([]);  // Manage files here
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+  const [uploadedFileKeys, setUploadedFileKeys] = useState([]);
 
   const handleVentilationChange = (index, field, value) => {
     const updatedVentilations = formData.ventilations.map((vent, idx) => {
-        if (idx === index) {
-            return { ...vent, [field]: value };
-        }
-        return vent;
+      if (idx === index) {
+        return { ...vent, [field]: value };
+      }
+      return vent;
     });
     setFormData(prev => ({ ...prev, ventilations: updatedVentilations }));
-};
+  };
 
 
   const addVentilation = () => {
     setFormData(prev => ({
       ...prev,
-      ventilations: [...prev.ventilations, { id: prev.ventilations.length + 1, category: '', amount: '', percentage: 0, selectedCategory: '' }]
+      ventilations: [...prev.ventilations, { id: prev.ventilations.length + 1, category: '', amount: '', selectedCategory: '' }]
     }));
   };
 
@@ -522,31 +538,45 @@ const ExpenseTransactionDetail = ({ onToggle }) => {
     const newVentilations = formData.ventilations.filter((_, i) => i !== index);
     setFormData(prev => ({ ...prev, ventilations: newVentilations }));
   };
+  const [displayText, setDisplayText] = useState('');
 
-  const handleSubmitTransaction = async () => {
-    const transactionData = {
-      ...formData,
-      ventilations: formData.ventilations.map(({ id, amount, percentage, selectedCategory }) => ({
-        id, amount, percentage, category: selectedCategory
-      }))
-    };
-  
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert([transactionData]);
-  
-    if (error) {
-      console.error("Erreur lors de l'ajout de la transaction :", error.message);
-    } else {
-      console.log('Transaction ajoutée avec succès !', data);
-      onToggle();  // Close modal after addition
-    }
-  };
-  
+useEffect(() => {
+  // Map over files to create a displayText format that includes filenames and URLs
+  const fileInfo = files.map(file => ({
+    name: file.name,
+    // Concatenate the base URL with the file's name to form the complete URL
+    url: `https://iholojdqmdamozagajwk.supabase.co/storage/v1/object/public/justificatifs/${file.name}`
+  }));
+
+  setDisplayText(JSON.stringify(fileInfo));
+}, [files]);
+
+const handleSubmitTransaction = async () => {
+  try {
+      const transactionData = {
+          ...formData,
+          justificatifs_url: displayText,  // Use displayText which now includes proper URLs
+          ventilations: formData.ventilations.map(vent => ({
+              id: vent.id,
+              amount: vent.amount || 0,
+              category: vent.selectedCategory
+          }))
+      };
+
+      const { data, error } = await supabase.from('transactions').insert([transactionData]);
+      if (error) throw error;
+
+      console.log('Transaction added successfully!', data);
+      onToggle(); // Close modal or reset form
+  } catch (error) {
+      console.error('Error submitting transaction:', error.message);
+  }
+};
+
 
   return (
     <>
-      <ExpenseFormHeader onToggle={onToggle} onSubmitTransaction={handleSubmitTransaction} />
+      <ExpenseFormHeader onToggle={onToggle} onSubmitTransaction={handleSubmitTransaction} files={files} />
       <Box
         p={4}
         display="flex"
@@ -564,7 +594,7 @@ const ExpenseTransactionDetail = ({ onToggle }) => {
           maxWidth="1400px"
           margin="0 auto"
         >
-          <ExpenseInformation formData={formData} onChange={handleInputChange} />
+          <ExpenseInformation formData={formData} onChange={handleInputChange} files={files} setFiles={setFiles} />
           <ExpenseVentilationComponent
             ventilations={formData.ventilations}
             onVentilationChange={handleVentilationChange}

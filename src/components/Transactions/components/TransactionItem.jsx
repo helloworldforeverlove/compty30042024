@@ -380,15 +380,37 @@ function TransactionItem({ transaction, transactionId }) {
     }
   }; 
   useEffect(() => {
-    const fetchAndSetData = async () => {
-    if (transactionId && isDetailOpen) {
-      console.log('Fetching data for transaction ID:', transactionId);
-        await fetchTransactionData(transactionId);
-    }
-    };
+    async function fetchData() {
+      if (transactionId && isDetailOpen) {
+        try {
+          const { data, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('id', transactionId)
+            .single();
   
-    fetchAndSetData();
-  }, [transactionId, isDetailOpen]); // S'assurer que fetchTransactionData est appelé à l'ouverture du modal
+          if (error) throw new Error(error.message);
+  
+          if (data) {
+            setFormData({
+              libelle: data.libelle || '',
+              date_transaction: new Date(data.date_transaction) || new Date(),
+              montant_total: data.montant_total || 0,
+              annotations: data.annotations || '',
+              justificatifs_url: data.justificatifs_url || [],
+              moyen: data.moyen || '',
+              compte_bancaire: data.compte_bancaire || '',
+              ventilations: data.ventilations || []
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching transaction data:', error);
+        }
+      }
+    }
+  
+    fetchData();
+  }, [transactionId, isDetailOpen]); // Dépendances correctement configurées
   
 
   return (

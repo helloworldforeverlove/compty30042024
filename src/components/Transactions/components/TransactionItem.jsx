@@ -12,7 +12,7 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
- ModalCloseButton,
+  ModalCloseButton,
   ModalFooter,
   ModalBody,
   VStack,
@@ -152,14 +152,18 @@ const handleFileUpload = async (acceptedFiles) => {
   setUploadedFileKeys(uploadedFileUrls);
 };
 
-
 const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
-  const [annotations, setAnnotations] = useState('');
-  const [selectedDate, setSelectedDate] = useState(formData.date_transaction || new Date());
+  const [annotations, setAnnotations] = useState(formData?.annotations || '');
+  const [selectedDate, setSelectedDate] = useState(formData?.date_transaction || new Date());
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
-    onChange({ target: { name: 'date_transaction', value: date } });
+    onChange({ ...formData, date_transaction: date });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    onChange({ ...formData, [name]: value });
   };
 
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
@@ -215,7 +219,11 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
       <VStack spacing={4} align="stretch">
         <FormControl id="transaction-label">
           <FormLabel>Libellé</FormLabel>
-          <Input value={formData.libelle} onChange={onChange} name="libelle" />
+          <Input
+            value={formData?.libelle || ''}
+            onChange={handleInputChange}
+            name="libelle"
+          />
         </FormControl>
 
         <FormControl id="transaction-date">
@@ -236,8 +244,8 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
           <Input
             type="number"
             step="0.01"
-            value={formData.montant_total}
-            onChange={onChange}
+            value={formData?.montant_total || ''}
+            onChange={handleInputChange}
             name="montant_total"
           />
         </FormControl>
@@ -248,7 +256,10 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
             <Input
               placeholder="Ajouter des mots clés"
               value={formData.annotations}
-              onChange={onChange}
+              onChange={(e) => {
+                setAnnotations(e.target.value);
+                handleInputChange(e);
+              }}
               name="annotations"
             />
             {annotations && (
@@ -272,7 +283,7 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
             <Input
               placeholder="Ajouter des justificatifs"
               background={inputBg}
-              value={files.map(file => `${file.name}`).join(', ')}
+              value={files.map(file => file.name).join(', ')}
               onClick={() => setIsFileModalOpen(true)}
               readOnly
             />
@@ -526,7 +537,7 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
   );
 };
 
-function TransactionItem({ transaction }) {
+function TransactionItem({ transaction, transactionId }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
   const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
   const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
@@ -729,27 +740,27 @@ function TransactionItem({ transaction }) {
   };
   const [displayText, setDisplayText] = useState('');
 
-useEffect(() => {
-  // Map over files to create a displayText format that includes filenames and URLs
-  const fileInfo = files.map(file => ({
-    name: file.name,
-    // Concatenate the base URL with the file's name to form the complete URL
-    url: `https://iholojdqmdamozagajwk.supabase.co/storage/v1/object/public/justificatifs/${file.name}`
-  }));
+  useEffect(() => {
+    // Map over files to create a displayText format that includes filenames and URLs
+    const fileInfo = files.map(file => ({
+      name: file.name,
+      // Concatenate the base URL with the file's name to form the complete URL
+      url: `https://iholojdqmdamozagajwk.supabase.co/storage/v1/object/public/justificatifs/${file.name}`
+    }));
 
-  setDisplayText(JSON.stringify(fileInfo));
-}, [files]);
+    setDisplayText(JSON.stringify(fileInfo));
+  }, [files]);
 
-const handleSubmitTransactionMontant = async () => {
-  try {
+  const handleSubmitTransactionMontant = async () => {
+    try {
       const transactionData = {
-          ...formData,
-          justificatifs_url: displayText,  // Use displayText which now includes proper URLs
-          ventilations: formData.ventilations.map(vent => ({
-              id: vent.id,
-              amount: vent.amount || 0,
-              category: vent.selectedCategory
-          }))
+        ...formData,
+        justificatifs_url: displayText,  // Use displayText which now includes proper URLs
+        ventilations: formData.ventilations.map(vent => ({
+          id: vent.id,
+          amount: vent.amount || 0,
+          category: vent.selectedCategory
+        }))
       };
 
       const { data, error } = await supabase.from('transactions').insert([transactionData]);
@@ -757,10 +768,32 @@ const handleSubmitTransactionMontant = async () => {
 
       console.log('Transaction added successfully!', data);
       onDetailToggle(); // Close modal or reset form
-  } catch (error) {
+    } catch (error) {
       console.error('Error submitting transaction:', error.message);
-  }
-};
+    }
+  };
+
+  const [transactionData, setTransactionData] = useState(null);
+
+  const fetchTransactionData = async (id) => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (!error && data) {
+      setTransactionData(data);
+    } else {
+      console.error('Error fetching transaction data', error);
+    }
+  };
+
+  useEffect(() => {
+    if (transactionId && isDetailOpen) {
+      fetchTransactionData(transactionId);
+    }
+  }, [transactionId, isDetailOpen]);
 
   return (
     <>
@@ -1005,9 +1038,9 @@ const handleSubmitTransactionMontant = async () => {
                 maxWidth="1400px"
                 margin="0 auto"
               >
-                <ExpenseInformation formData={formData} onChange={handleInputChangeMontant} files={files} setFiles={setFiles} />
+                {transactionData && <ExpenseInformation formData={transactionData} onChange={setTransactionData} files={files} setFiles={setFiles} />}
                 <ExpenseVentilationComponent
-                  ventilations={formData.ventilations}
+                  ventilations={formData?.ventilations || []}
                   onVentilationChange={handleVentilationChangeMontant}
                   onAddVentilation={addVentilationMontant}
                   onRemoveVentilation={removeVentilationMontant}

@@ -66,7 +66,7 @@ const handleCategorySelect = (category) => {
 
 function TransactionItem({ transaction, transactionId }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
-  const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
+  const { isOpen: isDetailOpen,  onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
   const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
   const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -236,6 +236,36 @@ function TransactionItem({ transaction, transactionId }) {
 
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
+  const onDetailOpen = () => {
+    // Assurez-vous que formData est à jour avant d'ouvrir le modal
+    fetchTransactionData(transactionId).then(() => {
+      onDetailOpen(); // Ouvre le modal après que les données sont chargées
+    });
+  };
+  
+  // Modifier la fonction fetchTransactionData pour renvoyer une promesse
+  const fetchTransactionData = async (id) => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+  
+    if (error) {
+      console.error('Error fetching transaction data:', error);
+      return;
+    }
+  
+    // Mettre à jour l'état avec les données chargées
+    setFormData({
+      libelle: data.libelle || '',
+      date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
+      montant_total: data.montant_total || 0,
+      annotations: data.annotations || '',
+      ventilations: data.ventilations || [],
+    });
+    console.log("Transaction data loaded:", data);
+  };
   useEffect(() => {
     async function fetchTransactionData(id) {
       // Fetch transaction data from the database
@@ -577,24 +607,24 @@ function TransactionItem({ transaction, transactionId }) {
                         <FormLabel>Libellé</FormLabel>
                         <Input
                           name="libelle"
-                          value={formData.libelle}
+                          value={transaction.libelle}
                           onChange={handleChange}
                         />
                       </FormControl>
                       <FormControl mt={4}>
                         <FormLabel>Date</FormLabel>
                         <ChakraDatePicker
-                          selected={formData.date_transaction}
+                          selected={transaction.date_transaction}
                           onChange={handleDateChange}
                           dateFormat="dd/MM/yyyy"
                         />
                       </FormControl>
                       <FormControl mt={4}>
-                        <FormLabel>Montant</FormLabel>
+                        <FormLabel>Montantss</FormLabel>
                         <Input
                           name="montant_total"
                           type="number"
-                          value={formData.montant_total}
+                          value={transaction.montant_total}
                           onChange={handleChange}
                         />
                       </FormControl>
@@ -602,7 +632,7 @@ function TransactionItem({ transaction, transactionId }) {
                       <FormControl id="transaction-annotations">
                         <FormLabel>Annotations</FormLabel>
                         <Input
-                          value={formData.annotations}
+                          value={transaction.annotations}
                           onChange={(e) => setFormData({ ...formData, annotations: e.target.value })}
                         />
                       </FormControl>

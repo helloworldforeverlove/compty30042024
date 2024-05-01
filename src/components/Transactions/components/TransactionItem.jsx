@@ -339,37 +339,34 @@ function TransactionItem({ transaction, transactionId }) {
   };
 
   useEffect(() => {
-    async function fetchTransaction() {
-      if (!transactionId) return;
-
+    async function fetchTransactionData(id) {
+      // Fetch transaction data from the database
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .eq('id', transactionId)
+        .eq('id', id)
         .single();
-
+  
       if (error) {
-        console.error('Error fetching transaction:', error);
-        toast({
-          title: "Erreur de chargement",
-          description: error.message,
-          status: "error",
-          duration: 5000,
-          isClosable: true,
-        });
+        console.error('Error fetching transaction data:', error);
         return;
       }
-
+  
+      // Update the formData state with fetched data
       setFormData({
         libelle: data.libelle || '',
         date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
         montant_total: data.montant_total || 0,
         annotations: data.annotations || '',
+        ventilations: data.ventilations || [],
       });
     }
-
-    fetchTransaction();
-  }, [transactionId, toast]);
+  
+    if (transactionId) {
+      fetchTransactionData(transactionId);
+    }
+  }, [transactionId]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;

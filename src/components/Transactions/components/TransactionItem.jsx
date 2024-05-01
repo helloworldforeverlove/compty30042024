@@ -326,27 +326,25 @@ function TransactionItem({ transaction, transactionId }) {
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
 
-  const handleSubmitTransactionMontant = async () => {
-    try {
-      const transactionData = {
-        ...formData,
-        justificatifs_url: displayText,  // Use displayText which now includes proper URLs
-        ventilations: formData.ventilations.map(vent => ({
-          id: vent.id,
-          amount: vent.amount || 0,
-          category: vent.selectedCategory
-        }))
-      };
+  const handleSubmit = async () => {
+    const { error } = await supabase
+      .from('transactions')
+      .update({
+        libelle: formData.libelle,
+        date_transaction: formData.date_transaction,
+        montant_total: formData.montant_total,
+        annotations: formData.annotations
+      })
+      .eq('id', transaction.id);
 
-      const { data, error } = await supabase.from('transactions').insert([transactionData]);
-      if (error) throw error;
-
-      console.log('Transaction added successfully!', data);
-      onDetailToggle(); // Close modal or reset form
-    } catch (error) {
-      console.error('Error submitting transaction:', error.message);
+    if (error) {
+      console.error('Error updating transaction:', error.message);
+    } else {
+      console.log('Transaction updated successfully!');
+      onDetailClose(); // Fermer le modal après la mise à jour
     }
   };
+
 
   const [transactionData, setTransactionData] = useState(null);
 
@@ -358,21 +356,21 @@ function TransactionItem({ transaction, transactionId }) {
         .eq('id', id)
         .single();
 
-      if (error) {
-        console.error('Error fetching transaction data:', error);
-        return;
-      }
+      if (error) throw error;
 
-      if (data) {
-        console.log('Transaction data fetched:', data);
-        setTransactionData(data);
-      } else {
-        console.log('No data returned for transaction with ID:', id);
-      }
+      // Mettre à jour l'état avec les données récupérées
+      setFormData({
+        libelle: data.libelle || '',
+        date_transaction: new Date(data.date_transaction),
+        montant_total: data.montant_total || 0,
+        annotations: data.annotations || '',
+        ventilations: data.ventilations || []
+      });
     } catch (err) {
       console.error('Exception while fetching transaction data:', err);
     }
   };
+
 
 
   useEffect(() => {
@@ -643,18 +641,23 @@ function TransactionItem({ transaction, transactionId }) {
                     <VStack spacing={4} align="stretch">
                       <FormControl id="transaction-label">
                         <FormLabel>Libellé</FormLabel>
-                        <Input value={formData.libelle}  name="libelle" />
+                        <Input
+                          value={formData.libelle}
+                          onChange={(e) => setFormData({ ...formData, libelle: e.target.value })}
+                          name="libelle"
+                        />
                       </FormControl>
 
                       <FormControl id="transaction-date">
                         <FormLabel>Date</FormLabel>
-                        <DatePicker
-                          
+                        <ChakraDatePicker
+                          selected={formData.date_transaction}
+                          onChange={(date) => setFormData({ ...formData, date_transaction: date })}
                           dateFormat="dd/MM/yyyy"
-                          customInput={<Input />}
                           popperPlacement="bottom-start"
                           showWeekNumbers
                           calendarStartDay={1}
+                          customInput={<Input />}
                         />
                       </FormControl>
 
@@ -664,32 +667,23 @@ function TransactionItem({ transaction, transactionId }) {
                           type="number"
                           step="0.01"
                           value={formData.montant_total}
-                          
+                          onChange={(e) => setFormData({ ...formData, montant_total: parseFloat(e.target.value) })}
                           name="montant_total"
                         />
                       </FormControl>
 
                       <FormControl id="transaction-annotations">
                         <FormLabel>Annotations</FormLabel>
-                        <InputGroup>
-                          <Input
-                            placeholder="Ajouter des mots clés"
-                            value={formData.annotations}
-                            
-                            name="annotations"
-                          />
-                          
-                            <InputRightElement>
-                              <IconButton
-                                aria-label="Clear annotations"
-                                icon={<CloseIcon />}
-                                size="sm"
-                                onClick={() => setAnnotations('')}
-                                isRound={true}
-                              />
-                            </InputRightElement>
-                        </InputGroup>
+                        <Input
+                          placeholder="Ajouter des mots clés"
+                          value={formData.annotations}
+                          onChange={(e) => setFormData({ ...formData, annotations: e.target.value })}
+                          name="annotations"
+                        />
                       </FormControl>
+                      <Button colorScheme="blue" onClick={handleSubmit}>
+                        Enregistrer les modifications
+                      </Button>
                     </VStack>
                   </Box>
                   <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>

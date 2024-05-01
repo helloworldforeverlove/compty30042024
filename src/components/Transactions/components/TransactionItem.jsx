@@ -604,8 +604,82 @@ function TransactionItem({ transaction, transactionId }) {
       </Modal>
 
       <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="full" overflow="auto">
-  
-</Modal>
+      <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Modifier la ventilation</ModalHeader>
+          <ModalBody>
+            <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+              <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+              {tempVentilations.map((ventilation, index) => (
+                <Box key={ventilation.id} mb={4} p={4} bg="white" borderRadius="lg" boxShadow="sm">
+                  <Flex justify="space-between" align="center">
+                    <Text fontWeight="medium">Ventilation {index + 1}</Text>
+                    <IconButton
+                      aria-label="Supprimer la ventilation"
+                      icon={<FaTimes />}
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="red"
+                      onClick={() => deleteVentilation(index)}
+                    />
+                  </Flex>
+                  <Stack spacing={4} mt={4}>
+                    <FormControl>
+                      <FormLabel>Catégorie</FormLabel>
+                      <Input
+                        readOnly
+                        value={ventilation.category || "Sélectionner une catégorie"}
+                        onClick={() => openCategoryModal(index)}
+                        placeholder="Sélectionner une catégorie"
+                      />
+                    </FormControl>
+                    <CategorySelectionModal
+                      categories={categories}
+                      isOpen={isCategoryModalOpen}
+                      onClose={() => setIsCategoryModalOpen(false)}
+                      onSelectCategory={handleCategorySelect}
+                      activeIndex={activeVentilationIndex}
+                    />
+                    <FormControl>
+                      <FormLabel>Montant</FormLabel>
+                      <InputGroup>
+                        <Input type="number" value={ventilation.amount || ''} onChange={(e) => handleAmountChange(index, e.target.value)} />
+                        <InputRightElement pointerEvents="none" children={<MdEuro color="gray.500" />} />
+                      </InputGroup>
+                    </FormControl>
+                  </Stack>
+                </Box>
+              ))}
+              <Button leftIcon={<FaPlus />} colorScheme="blue" variant="outline" onClick={addVentilation} mt={2}>
+                Ajouter une ventilation
+              </Button>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Tooltip textAlign="center" label="Appliquer les modifications à toutes les ventilations" placement="top">
+              <Button
+                leftIcon={<Icon as={FcSupport} />}
+                colorScheme="blue"
+                onClick={submitVentilations}
+                mr={2}
+                variant="ghost"
+                aria-label="Appliquer les modifications"
+              >
+                Enregistrer
+              </Button>
+            </Tooltip>
+            <Button
+              onClick={onDetailClose}
+              leftIcon={<Icon as={FcWorkflow} />}
+              mr={2}
+              variant="ghost"
+              aria-label="Appliquer les modifications"
+            >
+              Fermer
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
     </>
   );

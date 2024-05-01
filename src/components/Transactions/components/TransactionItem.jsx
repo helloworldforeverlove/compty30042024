@@ -48,23 +48,7 @@ import { FcApproval } from "react-icons/fc";
 import CategorySelectionModal from './CategorySelectionModal';
 import { LiaCloudUploadAltSolid } from "react-icons/lia";
 
-const ExpenseFormHeader = ({ onDetailClose, onSubmitTransaction, files }) => {
-  return (
-    <Flex justifyContent="space-between" alignItems="center" p={4} bg="white" boxShadow="md">
-      <Heading as="h3" size="lg">
-        Ajout d'une dépense professionnelle
-      </Heading>
-      <Box>
-        <Button mr={3} onClick={onDetailClose}>
-          Fermer
-        </Button>
-        <Button colorScheme="pink" onClick={() => onSubmitTransaction(files)}>
-          Ajouter
-        </Button>
-      </Box>
-    </Flex>
-  );
-};
+
 
 const ChakraDatePicker = chakra(DatePicker);
 
@@ -152,7 +136,7 @@ const handleFileUpload = async (acceptedFiles) => {
   setUploadedFileKeys(uploadedFileUrls);
 };
 
-const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
+
   const [annotations, setAnnotations] = useState(formData?.annotations || '');
   const [selectedDate, setSelectedDate] = useState(formData?.date_transaction || new Date());
 
@@ -214,168 +198,8 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
     }
   }, [files]);
 
-  return (
-    <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
-      <VStack spacing={4} align="stretch">
-        <FormControl id="transaction-label">
-          <FormLabel>Libellé</FormLabel>
-          <Input
-            value={formData?.libelle || ''}
-            onChange={handleInputChange}
-            name="libelle"
-          />
-        </FormControl>
+    
 
-        <FormControl id="transaction-date">
-          <FormLabel>Date</FormLabel>
-          <DatePicker
-            selected={selectedDate}
-            onChange={handleDateChange}
-            dateFormat="dd/MM/yyyy"
-            customInput={<Input />}
-            popperPlacement="bottom-start"
-            showWeekNumbers
-            calendarStartDay={1}
-          />
-        </FormControl>
-
-        <FormControl id="transaction-amount">
-          <FormLabel>Montant</FormLabel>
-          <Input
-            type="number"
-            step="0.01"
-            value={formData?.montant_total || ''}
-            onChange={handleInputChange}
-            name="montant_total"
-          />
-        </FormControl>
-
-        <FormControl id="transaction-annotations">
-          <FormLabel>Annotations</FormLabel>
-          <InputGroup>
-            <Input
-              placeholder="Ajouter des mots clés"
-              value={formData.annotations}
-              onChange={(e) => {
-                setAnnotations(e.target.value);
-                handleInputChange(e);
-              }}
-              name="annotations"
-            />
-            {annotations && (
-              <InputRightElement>
-                <IconButton
-                  aria-label="Clear annotations"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={() => setAnnotations('')}
-                  isRound={true}
-                  style={closeButtonStyle}
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-        </FormControl>
-
-        <FormControl id="transaction-justifications">
-          <FormLabel>Justificatifs</FormLabel>
-          <InputGroup>
-            <Input
-              placeholder="Ajouter des justificatifs"
-              background={inputBg}
-              value={files.map(file => file.name).join(', ')}
-              onClick={() => setIsFileModalOpen(true)}
-              readOnly
-            />
-            {files.length > 0 && (
-              <InputRightElement>
-                <IconButton
-                  aria-label="Clear files"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={clearFiles}
-                  isRound={true}
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-          {files.map((file, index) => (
-            <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
-          ))}
-        </FormControl>
-
-        <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
-          <ModalOverlay />
-          <ModalContent minH="80vh">
-            <ModalHeader>Ajouter des justificatifs</ModalHeader>
-            <Box
-              borderBottomWidth="1px"
-              borderColor="gray.200"
-              width="full"
-            />
-            <ModalCloseButton />
-            <ModalBody>
-              <Flex>
-                <>
-                  {files.length === 0 ? (
-                    <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
-                      <input {...getInputProps()} />
-                      <AttachmentIcon w={12} h={12} color='gray.500' />
-                      <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers</Text>
-                      <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
-                      <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
-                    </div>
-                  ) : (
-                    <VStack width="50%" spacing={4}>
-                      <Box w="95%">
-                        {files.map((file, index) => (
-                          <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
-                        ))}
-                      </Box>
-                      <>
-                        <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', padding: '10px', textAlign: 'center' }}>
-                          <input {...getInputProps()} />
-                          <Button
-                            leftIcon={<LiaCloudUploadAltSolid />}
-                            colorScheme="teal"
-                            variant="outline"
-                            bg={useColorModeValue('white', 'gray.800')}
-                            color={useColorModeValue('gray.600', 'white')}
-                            _hover={{
-                              bg: useColorModeValue('gray.100', 'gray.700'),
-                            }}
-                          >
-                            Ajouter d'autres fichiers
-                          </Button>
-                        </div>
-                        <Text fontSize='sm'>
-                          {`Vous pouvez encore en ajouter ${maxFiles - files.length}.`}
-                        </Text>
-                      </>
-                    </VStack>
-                  )}
-                </>
-                {selectedFile && selectedFile.type.startsWith('image/') && (
-                  <Box width="50%" height="100%">
-                    <Image
-                      src={selectedFile.preview}
-                      alt={`Preview of ${selectedFile.name}`}
-                      objectFit="cover"
-                      width="100%"
-                      height="100%"
-                    />
-                  </Box>
-                )}
-              </Flex>
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      </VStack>
-    </Box>
-  );
-};
-
-const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddVentilation, onRemoveVentilation }) => {
   const [ventilationsState, setVentilations] = useState([
     { id: 1, amount: '', selectedCategory: 'Dépense personnelle' },
   ]);
@@ -403,7 +227,6 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
 
   const iconColor = useColorModeValue('gray.200', 'gray.300');
   const bgColor = useColorModeValue('gray.50', 'gray.700');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
   const hoverBg = useColorModeValue("green.100", "green.700");
   const activeBg = useColorModeValue("blue.300", "blue.800");
 
@@ -442,100 +265,7 @@ const ExpenseVentilationComponent = ({ ventilations, onVentilationChange, onAddV
       console.error("Index de ventilation non valide lors de la sélection de la catégorie");
     }
   };
-  return (
-    <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-      <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
-      {ventilations.map((vent, index) => (
-        <Box key={vent.id} p={4} bg="white" shadow="sm" mb={4} rounded="md">
-          <Flex alignItems="center" justifyContent="space-between">
-            <Heading size="md" mb={4}>Ventilation {index + 1}</Heading>
-            <IconButton
-              icon={<FaTimes />}
-              onClick={() => onRemoveVentilation(index)}
-              aria-label="Remove ventilation"
-            />
-          </Flex>
-          <Stack spacing={3}>
-            <FormControl>
-              <FormLabel>Catégorie</FormLabel>
-              <Input
-                value={vent.selectedCategory}
-                onChange={(e) => onVentilationChange(index, 'selectedCategory', e.target.value)}
-                placeholder="Select Category"
-                readOnly
-                onClick={() => openCategoryModal(index)}
 
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Montant</FormLabel>
-              <InputGroup>
-                <Input
-                  type="number"
-                  value={vent.amount}
-                  onChange={(e) => onVentilationChange(index, 'amount', e.target.value)}
-                />
-                <InputRightElement children={<MdEuro />} />
-              </InputGroup>
-            </FormControl>
-          </Stack>
-        </Box>
-      ))}
-      <Button leftIcon={<FaPlus />} onClick={onAddVentilation} colorScheme="blue">
-        Ajouter une ventilation
-      </Button>
-      <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
-        <ModalOverlay />
-        <ModalContent m={0} maxW="100vw">
-          <ModalHeader>
-            Affecter une Catégories
-            <IconButton
-              aria-label="Close modal"
-              icon={<FaTimes />}
-              onClick={onCategoryModalClose}
-              position="absolute"
-              right="8px"
-              top="8px"
-              size="sm"
-            />
-          </ModalHeader>
-          <ModalBody>
-            <Container maxW="container.xxl">
-              <SimpleGrid columns={6} spacing={5}>
-                {Object.keys(categories).map((categoryKey) => (
-                  <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-                    <Flex align="center" fontSize="xl">
-                      {icons[categoryKey]}
-                      <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-                    </Flex>
-                    <VStack align="start">
-                      {categories[categoryKey].map((item, index) => (
-                        <Tag size="md" variant="solid" key={index} _hover={{
-                          background: hoverBg,
-                          transform: 'scale(1.1)',
-                          transition: 'background-color 0.2s, transform 0.2s'
-                        }} _active={{
-                          background: activeBg,
-                          transform: 'scale(0.9)',
-                          transition: 'background-color 0.1s, transform 0.1s'
-                        }} onClick={(event) => {
-                          event.preventDefault();
-                          handleCategorySelect(item);
-                        }}>
-                          {item}
-                        </Tag>
-                      ))}
-                    </VStack>
-                  </Box>
-                ))}
-              </SimpleGrid>
-            </Container>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
-  );
-};
 
 function TransactionItem({ transaction, transactionId }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
@@ -776,24 +506,36 @@ function TransactionItem({ transaction, transactionId }) {
   const [transactionData, setTransactionData] = useState(null);
 
   const fetchTransactionData = async (id) => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('id', id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-    if (!error && data) {
-      setTransactionData(data);
-    } else {
-      console.error('Error fetching transaction data', error);
+      if (error) {
+        console.error('Error fetching transaction data:', error);
+        return;
+      }
+
+      if (data) {
+        console.log('Transaction data fetched:', data);
+        setTransactionData(data);
+      } else {
+        console.log('No data returned for transaction with ID:', id);
+      }
+    } catch (err) {
+      console.error('Exception while fetching transaction data:', err);
     }
   };
 
+
   useEffect(() => {
     if (transactionId && isDetailOpen) {
+      console.log('Fetching data for transaction ID:', transactionId);
       fetchTransactionData(transactionId);
     }
-  }, [transactionId, isDetailOpen]);
+  }, [transactionId, isDetailOpen]); // Ensure dependencies are correctly listed
 
   return (
     <>
@@ -1020,7 +762,19 @@ function TransactionItem({ transaction, transactionId }) {
         <ModalOverlay />
         <ModalContent m={0} maxW="100vw">
           <>
-            <ExpenseFormHeader onDetailClose={onDetailClose} onToggle={onDetailToggle} onSubmitTransaction={handleSubmitTransactionMontant} files={files} />
+            <Flex justifyContent="space-between" alignItems="center" p={4} bg="white" boxShadow="md">
+              <Heading as="h3" size="lg">
+                Ajout d'une dépense professionnelle
+              </Heading>
+              <Box>
+                <Button mr={3} onClick={onDetailClose}>
+                  Fermer
+                </Button>
+                <Button colorScheme="pink" onClick={() => onSubmitTransaction(files)}>
+                  Ajouter
+                </Button>
+              </Box>
+            </Flex>
             <Box
               p={4}
               display="flex"
@@ -1038,18 +792,260 @@ function TransactionItem({ transaction, transactionId }) {
                 maxWidth="1400px"
                 margin="0 auto"
               >
-                {transactionData && <ExpenseInformation formData={transactionData} onChange={setTransactionData} files={files} setFiles={setFiles} />}
-                <ExpenseVentilationComponent
-                  ventilations={formData?.ventilations || []}
-                  onVentilationChange={handleVentilationChangeMontant}
-                  onAddVentilation={addVentilationMontant}
-                  onRemoveVentilation={removeVentilationMontant}
+                <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
+      <VStack spacing={4} align="stretch">
+        <FormControl id="transaction-label">
+          <FormLabel>Libellé</FormLabel>
+          <Input
+            value={formData?.libelle || ''}
+            onChange={handleInputChange}
+            name="libelle"
+          />
+        </FormControl>
+
+        <FormControl id="transaction-date">
+          <FormLabel>Date</FormLabel>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateChange}
+            dateFormat="dd/MM/yyyy"
+            customInput={<Input />}
+            popperPlacement="bottom-start"
+            showWeekNumbers
+            calendarStartDay={1}
+          />
+        </FormControl>
+
+        <FormControl id="transaction-amount">
+          <FormLabel>Montant</FormLabel>
+          <Input
+            type="number"
+            step="0.01"
+            value={formData?.montant_total || ''}
+            onChange={handleInputChange}
+            name="montant_total"
+          />
+        </FormControl>
+
+        <FormControl id="transaction-annotations">
+          <FormLabel>Annotations</FormLabel>
+          <InputGroup>
+            <Input
+              placeholder="Ajouter des mots clés"
+              value={formData.annotations}
+              onChange={(e) => {
+                setAnnotations(e.target.value);
+                handleInputChange(e);
+              }}
+              name="annotations"
+            />
+            {annotations && (
+              <InputRightElement>
+                <IconButton
+                  aria-label="Clear annotations"
+                  icon={<CloseIcon />}
+                  size="sm"
+                  onClick={() => setAnnotations('')}
+                  isRound={true}
+                  style={closeButtonStyle}
                 />
+              </InputRightElement>
+            )}
+          </InputGroup>
+        </FormControl>
+
+        <FormControl id="transaction-justifications">
+          <FormLabel>Justificatifs</FormLabel>
+          <InputGroup>
+            <Input
+              placeholder="Ajouter des justificatifs"
+              background={inputBg}
+              value={files.map(file => file.name).join(', ')}
+              onClick={() => setIsFileModalOpen(true)}
+              readOnly
+            />
+            {files.length > 0 && (
+              <InputRightElement>
+                <IconButton
+                  aria-label="Clear files"
+                  icon={<CloseIcon />}
+                  size="sm"
+                  onClick={clearFiles}
+                  isRound={true}
+                />
+              </InputRightElement>
+            )}
+          </InputGroup>
+          {files.map((file, index) => (
+            <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
+          ))}
+        </FormControl>
+
+        <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
+          <ModalOverlay />
+          <ModalContent minH="80vh">
+            <ModalHeader>Ajouter des justificatifs</ModalHeader>
+            <Box
+              borderBottomWidth="1px"
+              borderColor="gray.200"
+              width="full"
+            />
+            <ModalCloseButton />
+            <ModalBody>
+              <Flex>
+                <>
+                  {files.length === 0 ? (
+                    <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
+                      <input {...getInputProps()} />
+                      <AttachmentIcon w={12} h={12} color='gray.500' />
+                      <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers</Text>
+                      <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
+                      <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
+                    </div>
+                  ) : (
+                    <VStack width="50%" spacing={4}>
+                      <Box w="95%">
+                        {files.map((file, index) => (
+                          <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
+                        ))}
+                      </Box>
+                      <>
+                        <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', padding: '10px', textAlign: 'center' }}>
+                          <input {...getInputProps()} />
+                          <Button
+                            leftIcon={<LiaCloudUploadAltSolid />}
+                            colorScheme="teal"
+                            variant="outline"
+                            bg={useColorModeValue('white', 'gray.800')}
+                            color={useColorModeValue('gray.600', 'white')}
+                            _hover={{
+                              bg: useColorModeValue('gray.100', 'gray.700'),
+                            }}
+                          >
+                            Ajouter d'autres fichiers
+                          </Button>
+                        </div>
+                        <Text fontSize='sm'>
+                          {`Vous pouvez encore en ajouter ${maxFiles - files.length}.`}
+                        </Text>
+                      </>
+                    </VStack>
+                  )}
+                </>
+                {selectedFile && selectedFile.type.startsWith('image/') && (
+                  <Box width="50%" height="100%">
+                    <Image
+                      src={selectedFile.preview}
+                      alt={`Preview of ${selectedFile.name}`}
+                      objectFit="cover"
+                      width="100%"
+                      height="100%"
+                    />
+                  </Box>
+                )}
+              </Flex>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </VStack>
+    </Box>
+    <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+      <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+      {ventilations.map((vent, index) => (
+        <Box key={vent.id} p={4} bg="white" shadow="sm" mb={4} rounded="md">
+          <Flex alignItems="center" justifyContent="space-between">
+            <Heading size="md" mb={4}>Ventilation {index + 1}</Heading>
+            <IconButton
+              icon={<FaTimes />}
+              onClick={() => onRemoveVentilation(index)}
+              aria-label="Remove ventilation"
+            />
+          </Flex>
+          <Stack spacing={3}>
+            <FormControl>
+              <FormLabel>Catégorie</FormLabel>
+              <Input
+                value={vent.selectedCategory}
+                onChange={(e) => onVentilationChange(index, 'selectedCategory', e.target.value)}
+                placeholder="Select Category"
+                readOnly
+                onClick={() => openCategoryModal(index)}
+
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel>Montant</FormLabel>
+              <InputGroup>
+                <Input
+                  type="number"
+                  value={vent.amount}
+                  onChange={(e) => onVentilationChange(index, 'amount', e.target.value)}
+                />
+                <InputRightElement children={<MdEuro />} />
+              </InputGroup>
+            </FormControl>
+          </Stack>
+        </Box>
+      ))}
+      <Button leftIcon={<FaPlus />} onClick={onAddVentilation} colorScheme="blue">
+        Ajouter une ventilation
+      </Button>
+      <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
+        <ModalOverlay />
+        <ModalContent m={0} maxW="100vw">
+          <ModalHeader>
+            Affecter une Catégories
+            <IconButton
+              aria-label="Close modal"
+              icon={<FaTimes />}
+              onClick={onCategoryModalClose}
+              position="absolute"
+              right="8px"
+              top="8px"
+              size="sm"
+            />
+          </ModalHeader>
+          <ModalBody>
+            <Container maxW="container.xxl">
+              <SimpleGrid columns={6} spacing={5}>
+                {Object.keys(categories).map((categoryKey) => (
+                  <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
+                    <Flex align="center" fontSize="xl">
+                      {icons[categoryKey]}
+                      <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
+                    </Flex>
+                    <VStack align="start">
+                      {categories[categoryKey].map((item, index) => (
+                        <Tag size="md" variant="solid" key={index} _hover={{
+                          background: hoverBg,
+                          transform: 'scale(1.1)',
+                          transition: 'background-color 0.2s, transform 0.2s'
+                        }} _active={{
+                          background: activeBg,
+                          transform: 'scale(0.9)',
+                          transition: 'background-color 0.1s, transform 0.1s'
+                        }} onClick={(event) => {
+                          event.preventDefault();
+                          handleCategorySelect(item);
+                        }}>
+                          {item}
+                        </Tag>
+                      ))}
+                    </VStack>
+                  </Box>
+                ))}
+              </SimpleGrid>
+            </Container>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </Box>
               </SimpleGrid>
             </Box>
           </>
         </ModalContent>
       </Modal>
+
     </>
   );
 }

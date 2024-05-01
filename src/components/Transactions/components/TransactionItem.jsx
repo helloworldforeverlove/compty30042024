@@ -137,134 +137,134 @@ const handleFileUpload = async (acceptedFiles) => {
 };
 
 
-  const [annotations, setAnnotations] = useState(formData?.annotations || '');
-  const [selectedDate, setSelectedDate] = useState(formData?.date_transaction || new Date());
+const [annotations, setAnnotations] = useState(formData?.annotations || '');
+const [selectedDate, setSelectedDate] = useState(formData?.date_transaction || new Date());
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-    onChange({ ...formData, date_transaction: date });
-  };
+const handleDateChange = (date) => {
+  setSelectedDate(date);
+  onChange({ ...formData, date_transaction: date });
+};
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    onChange({ ...formData, [name]: value });
-  };
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  onChange({ ...formData, [name]: value });
+};
 
-  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
-  const inputBg = useColorModeValue('gray.100', 'gray.600');
-  const borderColor = useColorModeValue('gray.300', 'gray.700');
-  const [selectedFile, setSelectedFile] = useState(null);
-  const maxFiles = 10;
+const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+const inputBg = useColorModeValue('gray.100', 'gray.600');
+const borderColor = useColorModeValue('gray.300', 'gray.700');
+const [selectedFile, setSelectedFile] = useState(null);
+const maxFiles = 10;
 
-  const { getRootProps, getInputProps, isDragReject, fileRejections } = useDropzone({
-    accept: 'image/png, image/jpeg, application/pdf',
-    maxSize: 10 * 1024 * 1024, // 10MB max size
-    onDrop: acceptedFiles => {
-      setFiles(prevFiles => {
-        const updatedFiles = prevFiles.concat(acceptedFiles).slice(0, maxFiles);
-        return updatedFiles.map(file => Object.assign(file, {
-          preview: URL.createObjectURL(file)
-        }));
-      });
-      handleFileUpload(acceptedFiles);
-    },
-    noClick: files.length >= maxFiles,
-    noKeyboard: files.length >= maxFiles,
-  });
+const { getRootProps, getInputProps, isDragReject, fileRejections } = useDropzone({
+  accept: 'image/png, image/jpeg, application/pdf',
+  maxSize: 10 * 1024 * 1024, // 10MB max size
+  onDrop: acceptedFiles => {
+    setFiles(prevFiles => {
+      const updatedFiles = prevFiles.concat(acceptedFiles).slice(0, maxFiles);
+      return updatedFiles.map(file => Object.assign(file, {
+        preview: URL.createObjectURL(file)
+      }));
+    });
+    handleFileUpload(acceptedFiles);
+  },
+  noClick: files.length >= maxFiles,
+  noKeyboard: files.length >= maxFiles,
+});
 
-  const deleteFile = (fileToDelete) => {
-    setFiles(files.filter(file => file !== fileToDelete));
-    URL.revokeObjectURL(fileToDelete.preview);
-  };
+const deleteFile = (fileToDelete) => {
+  setFiles(files.filter(file => file !== fileToDelete));
+  URL.revokeObjectURL(fileToDelete.preview);
+};
 
-  const clearFiles = () => {
-    files.forEach(file => URL.revokeObjectURL(file.preview));
-    setFiles([]);
-  };
+const clearFiles = () => {
+  files.forEach(file => URL.revokeObjectURL(file.preview));
+  setFiles([]);
+};
 
-  const closeButtonStyle = {
-    opacity: annotations ? 1 : 0,
-    transition: 'opacity 0.3s ease-out',
-    cursor: 'pointer'
-  };
+const closeButtonStyle = {
+  opacity: annotations ? 1 : 0,
+  transition: 'opacity 0.3s ease-out',
+  cursor: 'pointer'
+};
 
-  const handleFileSelect = (file) => {
-    setSelectedFile(file);
-  };
+const handleFileSelect = (file) => {
+  setSelectedFile(file);
+};
 
-  useEffect(() => {
-    if (files.length === 0) {
-      setSelectedFile(null);
-    }
-  }, [files]);
-
-    
-
-  const [ventilationsState, setVentilations] = useState([
-    { id: 1, amount: '', selectedCategory: 'Dépense personnelle' },
-  ]);
-
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [activeVentilationIndex, setActiveVentilationIndex] = useState(null);
-
-  const categories = {
-    Revenues: ['Apport personnel', 'Recette', 'Recette secondaire', 'Redevance de collaboration perçue', 'Autre gain divers', 'Vente d’une immobilisation', 'Emprunt', 'Caution reçue'],
-    Remunerations: ['Prélèvement personnel', 'Dépense personnelle', 'Rétrocession versée', 'Redevance de collaboration versée', 'Honoraires payés', '[Salariés] Salaire net', '[Salariés] Impôt à la source', '[Salariés] Charge sociale'],
-    Functionnement: ['Immobilisation', 'Matériel et outillage', 'Achat', 'Frais divers', 'Télécom, fournitures, documents', 'Frais d’acte et de contentieux', 'Débours pour vos clients', 'Virement interne'],
-    Deplacements: ['À catégoriser', 'Formation', 'Réception et congrès', 'Restaurant et repas d’affaires', 'Frais de repas hors domicile', 'Frais de déplacement', 'Véhicule et carburant', 'Location de matériel'],
-    FraisFixes: ['Emprunt', 'Compte commun ou SCM', 'Loyer et charge locative', 'Caution versée', 'Entretien et réparation', 'Abonnement logiciel', 'Eau, gaz, électricité', 'Assurance professionnelle'],
-    CotisationsEtTaxes: ['Cotisation sociale Urssaf', 'Cotisation retraite', 'Cotisation facultative', 'Cotisation professionnelle', 'CFE', 'Autre impôt', 'Amende et pénalité']
-  };
-
-  const icons = {
-    Revenues: <FcBullish />,
-    Remunerations: <FcDebt />,
-    Functionnement: <FcFactory />,
-    Deplacements: <FcAutomotive />,
-    FraisFixes: <FcAlarmClock />,
-    CotisationsEtTaxes: <FcDonate />
-  };
-
-  const iconColor = useColorModeValue('gray.200', 'gray.300');
-  const bgColor = useColorModeValue('gray.50', 'gray.700');
-  const hoverBg = useColorModeValue("green.100", "green.700");
-  const activeBg = useColorModeValue("blue.300", "blue.800");
-
-  const handleAmountChange = (index, value) => {
-    const newVentilations = [...ventilations];
-    newVentilations[index].amount = value;
-    setVentilations(newVentilations);
-  };
+useEffect(() => {
+  if (files.length === 0) {
+    setSelectedFile(null);
+  }
+}, [files]);
 
 
-  const addVentilation = () => {
-    const newId = ventilationsState.length + 1;
-    setVentilations([...ventilationsState, { id: newId, amount: '', selectedCategory: '' }]);
-  };
+
+const [ventilationsState, setVentilations] = useState([
+  { id: 1, amount: '', selectedCategory: 'Dépense personnelle' },
+]);
+
+const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+const [activeVentilationIndex, setActiveVentilationIndex] = useState(null);
+
+const categories = {
+  Revenues: ['Apport personnel', 'Recette', 'Recette secondaire', 'Redevance de collaboration perçue', 'Autre gain divers', 'Vente d’une immobilisation', 'Emprunt', 'Caution reçue'],
+  Remunerations: ['Prélèvement personnel', 'Dépense personnelle', 'Rétrocession versée', 'Redevance de collaboration versée', 'Honoraires payés', '[Salariés] Salaire net', '[Salariés] Impôt à la source', '[Salariés] Charge sociale'],
+  Functionnement: ['Immobilisation', 'Matériel et outillage', 'Achat', 'Frais divers', 'Télécom, fournitures, documents', 'Frais d’acte et de contentieux', 'Débours pour vos clients', 'Virement interne'],
+  Deplacements: ['À catégoriser', 'Formation', 'Réception et congrès', 'Restaurant et repas d’affaires', 'Frais de repas hors domicile', 'Frais de déplacement', 'Véhicule et carburant', 'Location de matériel'],
+  FraisFixes: ['Emprunt', 'Compte commun ou SCM', 'Loyer et charge locative', 'Caution versée', 'Entretien et réparation', 'Abonnement logiciel', 'Eau, gaz, électricité', 'Assurance professionnelle'],
+  CotisationsEtTaxes: ['Cotisation sociale Urssaf', 'Cotisation retraite', 'Cotisation facultative', 'Cotisation professionnelle', 'CFE', 'Autre impôt', 'Amende et pénalité']
+};
+
+const icons = {
+  Revenues: <FcBullish />,
+  Remunerations: <FcDebt />,
+  Functionnement: <FcFactory />,
+  Deplacements: <FcAutomotive />,
+  FraisFixes: <FcAlarmClock />,
+  CotisationsEtTaxes: <FcDonate />
+};
+
+const iconColor = useColorModeValue('gray.200', 'gray.300');
+const bgColor = useColorModeValue('gray.50', 'gray.700');
+const hoverBg = useColorModeValue("green.100", "green.700");
+const activeBg = useColorModeValue("blue.300", "blue.800");
+
+const handleAmountChange = (index, value) => {
+  const newVentilations = [...ventilations];
+  newVentilations[index].amount = value;
+  setVentilations(newVentilations);
+};
 
 
-  const removeVentilation = index => {
-    setVentilations(ventilations.filter((_, i) => i !== index));
-  };
+const addVentilation = () => {
+  const newId = ventilationsState.length + 1;
+  setVentilations([...ventilationsState, { id: newId, amount: '', selectedCategory: '' }]);
+};
 
-  const openCategoryModal = (index) => {
-    setActiveVentilationIndex(index);
-    setIsCategoryModalOpen(true);
-  };
 
-  const onCategoryModalClose = () => {
-    setIsCategoryModalOpen(false);
-  };
+const removeVentilation = index => {
+  setVentilations(ventilations.filter((_, i) => i !== index));
+};
 
-  const handleCategorySelect = (category) => {
-    // S'assurer que l'index est valide
-    if (activeVentilationIndex != null && ventilations[activeVentilationIndex]) {
-      onVentilationChange(activeVentilationIndex, 'selectedCategory', category);
-      onCategoryModalClose();
-    } else {
-      console.error("Index de ventilation non valide lors de la sélection de la catégorie");
-    }
-  };
+const openCategoryModal = (index) => {
+  setActiveVentilationIndex(index);
+  setIsCategoryModalOpen(true);
+};
+
+const onCategoryModalClose = () => {
+  setIsCategoryModalOpen(false);
+};
+
+const handleCategorySelect = (category) => {
+  // S'assurer que l'index est valide
+  if (activeVentilationIndex != null && ventilations[activeVentilationIndex]) {
+    onVentilationChange(activeVentilationIndex, 'selectedCategory', category);
+    onCategoryModalClose();
+  } else {
+    console.error("Index de ventilation non valide lors de la sélection de la catégorie");
+  }
+};
 
 
 function TransactionItem({ transaction, transactionId }) {
@@ -793,253 +793,253 @@ function TransactionItem({ transaction, transactionId }) {
                 margin="0 auto"
               >
                 <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
-      <VStack spacing={4} align="stretch">
-        <FormControl id="transaction-label">
-          <FormLabel>Libellé</FormLabel>
-          <Input
-            value={formData?.libelle || ''}
-            onChange={handleInputChange}
-            name="libelle"
-          />
-        </FormControl>
+                  <VStack spacing={4} align="stretch">
+                    <FormControl id="transaction-label">
+                      <FormLabel>Libellé</FormLabel>
+                      <Input
+                        value={formData?.libelle || ''}
+                        onChange={handleInputChange}
+                        name="libelle"
+                      />
+                    </FormControl>
 
-        <FormControl id="transaction-date">
-          <FormLabel>Date</FormLabel>
-          <DatePicker
-            selected={selectedDate}
-            onChange={handleDateChange}
-            dateFormat="dd/MM/yyyy"
-            customInput={<Input />}
-            popperPlacement="bottom-start"
-            showWeekNumbers
-            calendarStartDay={1}
-          />
-        </FormControl>
+                    <FormControl id="transaction-date">
+                      <FormLabel>Date</FormLabel>
+                      <DatePicker
+                        selected={selectedDate}
+                        onChange={handleDateChange}
+                        dateFormat="dd/MM/yyyy"
+                        customInput={<Input />}
+                        popperPlacement="bottom-start"
+                        showWeekNumbers
+                        calendarStartDay={1}
+                      />
+                    </FormControl>
 
-        <FormControl id="transaction-amount">
-          <FormLabel>Montant</FormLabel>
-          <Input
-            type="number"
-            step="0.01"
-            value={formData?.montant_total || ''}
-            onChange={handleInputChange}
-            name="montant_total"
-          />
-        </FormControl>
+                    <FormControl id="transaction-amount">
+                      <FormLabel>Montant</FormLabel>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={formData?.montant_total || ''}
+                        onChange={handleInputChange}
+                        name="montant_total"
+                      />
+                    </FormControl>
 
-        <FormControl id="transaction-annotations">
-          <FormLabel>Annotations</FormLabel>
-          <InputGroup>
-            <Input
-              placeholder="Ajouter des mots clés"
-              value={formData.annotations}
-              onChange={(e) => {
-                setAnnotations(e.target.value);
-                handleInputChange(e);
-              }}
-              name="annotations"
-            />
-            {annotations && (
-              <InputRightElement>
-                <IconButton
-                  aria-label="Clear annotations"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={() => setAnnotations('')}
-                  isRound={true}
-                  style={closeButtonStyle}
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-        </FormControl>
+                    <FormControl id="transaction-annotations">
+                      <FormLabel>Annotations</FormLabel>
+                      <InputGroup>
+                        <Input
+                          placeholder="Ajouter des mots clés"
+                          value={formData.annotations}
+                          onChange={(e) => {
+                            setAnnotations(e.target.value);
+                            handleInputChange(e);
+                          }}
+                          name="annotations"
+                        />
+                        {annotations && (
+                          <InputRightElement>
+                            <IconButton
+                              aria-label="Clear annotations"
+                              icon={<CloseIcon />}
+                              size="sm"
+                              onClick={() => setAnnotations('')}
+                              isRound={true}
+                              style={closeButtonStyle}
+                            />
+                          </InputRightElement>
+                        )}
+                      </InputGroup>
+                    </FormControl>
 
-        <FormControl id="transaction-justifications">
-          <FormLabel>Justificatifs</FormLabel>
-          <InputGroup>
-            <Input
-              placeholder="Ajouter des justificatifs"
-              background={inputBg}
-              value={files.map(file => file.name).join(', ')}
-              onClick={() => setIsFileModalOpen(true)}
-              readOnly
-            />
-            {files.length > 0 && (
-              <InputRightElement>
-                <IconButton
-                  aria-label="Clear files"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  onClick={clearFiles}
-                  isRound={true}
-                />
-              </InputRightElement>
-            )}
-          </InputGroup>
-          {files.map((file, index) => (
-            <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
-          ))}
-        </FormControl>
-
-        <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
-          <ModalOverlay />
-          <ModalContent minH="80vh">
-            <ModalHeader>Ajouter des justificatifs</ModalHeader>
-            <Box
-              borderBottomWidth="1px"
-              borderColor="gray.200"
-              width="full"
-            />
-            <ModalCloseButton />
-            <ModalBody>
-              <Flex>
-                <>
-                  {files.length === 0 ? (
-                    <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
-                      <input {...getInputProps()} />
-                      <AttachmentIcon w={12} h={12} color='gray.500' />
-                      <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers</Text>
-                      <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
-                      <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
-                    </div>
-                  ) : (
-                    <VStack width="50%" spacing={4}>
-                      <Box w="95%">
-                        {files.map((file, index) => (
-                          <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
-                        ))}
-                      </Box>
-                      <>
-                        <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', padding: '10px', textAlign: 'center' }}>
-                          <input {...getInputProps()} />
-                          <Button
-                            leftIcon={<LiaCloudUploadAltSolid />}
-                            colorScheme="teal"
-                            variant="outline"
-                            bg={useColorModeValue('white', 'gray.800')}
-                            color={useColorModeValue('gray.600', 'white')}
-                            _hover={{
-                              bg: useColorModeValue('gray.100', 'gray.700'),
-                            }}
-                          >
-                            Ajouter d'autres fichiers
-                          </Button>
-                        </div>
-                        <Text fontSize='sm'>
-                          {`Vous pouvez encore en ajouter ${maxFiles - files.length}.`}
-                        </Text>
-                      </>
-                    </VStack>
-                  )}
-                </>
-                {selectedFile && selectedFile.type.startsWith('image/') && (
-                  <Box width="50%" height="100%">
-                    <Image
-                      src={selectedFile.preview}
-                      alt={`Preview of ${selectedFile.name}`}
-                      objectFit="cover"
-                      width="100%"
-                      height="100%"
-                    />
-                  </Box>
-                )}
-              </Flex>
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      </VStack>
-    </Box>
-    <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
-      <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
-      {ventilations.map((vent, index) => (
-        <Box key={vent.id} p={4} bg="white" shadow="sm" mb={4} rounded="md">
-          <Flex alignItems="center" justifyContent="space-between">
-            <Heading size="md" mb={4}>Ventilation {index + 1}</Heading>
-            <IconButton
-              icon={<FaTimes />}
-              onClick={() => onRemoveVentilation(index)}
-              aria-label="Remove ventilation"
-            />
-          </Flex>
-          <Stack spacing={3}>
-            <FormControl>
-              <FormLabel>Catégorie</FormLabel>
-              <Input
-                value={vent.selectedCategory}
-                onChange={(e) => onVentilationChange(index, 'selectedCategory', e.target.value)}
-                placeholder="Select Category"
-                readOnly
-                onClick={() => openCategoryModal(index)}
-
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel>Montant</FormLabel>
-              <InputGroup>
-                <Input
-                  type="number"
-                  value={vent.amount}
-                  onChange={(e) => onVentilationChange(index, 'amount', e.target.value)}
-                />
-                <InputRightElement children={<MdEuro />} />
-              </InputGroup>
-            </FormControl>
-          </Stack>
-        </Box>
-      ))}
-      <Button leftIcon={<FaPlus />} onClick={onAddVentilation} colorScheme="blue">
-        Ajouter une ventilation
-      </Button>
-      <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
-        <ModalOverlay />
-        <ModalContent m={0} maxW="100vw">
-          <ModalHeader>
-            Affecter une Catégories
-            <IconButton
-              aria-label="Close modal"
-              icon={<FaTimes />}
-              onClick={onCategoryModalClose}
-              position="absolute"
-              right="8px"
-              top="8px"
-              size="sm"
-            />
-          </ModalHeader>
-          <ModalBody>
-            <Container maxW="container.xxl">
-              <SimpleGrid columns={6} spacing={5}>
-                {Object.keys(categories).map((categoryKey) => (
-                  <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
-                    <Flex align="center" fontSize="xl">
-                      {icons[categoryKey]}
-                      <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
-                    </Flex>
-                    <VStack align="start">
-                      {categories[categoryKey].map((item, index) => (
-                        <Tag size="md" variant="solid" key={index} _hover={{
-                          background: hoverBg,
-                          transform: 'scale(1.1)',
-                          transition: 'background-color 0.2s, transform 0.2s'
-                        }} _active={{
-                          background: activeBg,
-                          transform: 'scale(0.9)',
-                          transition: 'background-color 0.1s, transform 0.1s'
-                        }} onClick={(event) => {
-                          event.preventDefault();
-                          handleCategorySelect(item);
-                        }}>
-                          {item}
-                        </Tag>
+                    <FormControl id="transaction-justifications">
+                      <FormLabel>Justificatifs</FormLabel>
+                      <InputGroup>
+                        <Input
+                          placeholder="Ajouter des justificatifs"
+                          background={inputBg}
+                          value={files.map(file => file.name).join(', ')}
+                          onClick={() => setIsFileModalOpen(true)}
+                          readOnly
+                        />
+                        {files.length > 0 && (
+                          <InputRightElement>
+                            <IconButton
+                              aria-label="Clear files"
+                              icon={<CloseIcon />}
+                              size="sm"
+                              onClick={clearFiles}
+                              isRound={true}
+                            />
+                          </InputRightElement>
+                        )}
+                      </InputGroup>
+                      {files.map((file, index) => (
+                        <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
                       ))}
-                    </VStack>
-                  </Box>
-                ))}
-              </SimpleGrid>
-            </Container>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </Box>
+                    </FormControl>
+
+                    <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
+                      <ModalOverlay />
+                      <ModalContent minH="80vh">
+                        <ModalHeader>Ajouter des justificatifs</ModalHeader>
+                        <Box
+                          borderBottomWidth="1px"
+                          borderColor="gray.200"
+                          width="full"
+                        />
+                        <ModalCloseButton />
+                        <ModalBody>
+                          <Flex>
+                            <>
+                              {files.length === 0 ? (
+                                <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
+                                  <input {...getInputProps()} />
+                                  <AttachmentIcon w={12} h={12} color='gray.500' />
+                                  <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers</Text>
+                                  <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
+                                  <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
+                                </div>
+                              ) : (
+                                <VStack width="50%" spacing={4}>
+                                  <Box w="95%">
+                                    {files.map((file, index) => (
+                                      <FilePreview key={index} file={file} onDelete={deleteFile} onSelect={handleFileSelect} />
+                                    ))}
+                                  </Box>
+                                  <>
+                                    <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', padding: '10px', textAlign: 'center' }}>
+                                      <input {...getInputProps()} />
+                                      <Button
+                                        leftIcon={<LiaCloudUploadAltSolid />}
+                                        colorScheme="teal"
+                                        variant="outline"
+                                        bg={useColorModeValue('white', 'gray.800')}
+                                        color={useColorModeValue('gray.600', 'white')}
+                                        _hover={{
+                                          bg: useColorModeValue('gray.100', 'gray.700'),
+                                        }}
+                                      >
+                                        Ajouter d'autres fichiers
+                                      </Button>
+                                    </div>
+                                    <Text fontSize='sm'>
+                                      {`Vous pouvez encore en ajouter ${maxFiles - files.length}.`}
+                                    </Text>
+                                  </>
+                                </VStack>
+                              )}
+                            </>
+                            {selectedFile && selectedFile.type.startsWith('image/') && (
+                              <Box width="50%" height="100%">
+                                <Image
+                                  src={selectedFile.preview}
+                                  alt={`Preview of ${selectedFile.name}`}
+                                  objectFit="cover"
+                                  width="100%"
+                                  height="100%"
+                                />
+                              </Box>
+                            )}
+                          </Flex>
+                        </ModalBody>
+                      </ModalContent>
+                    </Modal>
+                  </VStack>
+                </Box>
+                <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
+                  <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
+                  {ventilations.map((vent, index) => (
+                    <Box key={vent.id} p={4} bg="white" shadow="sm" mb={4} rounded="md">
+                      <Flex alignItems="center" justifyContent="space-between">
+                        <Heading size="md" mb={4}>Ventilation {index + 1}</Heading>
+                        <IconButton
+                          icon={<FaTimes />}
+                          onClick={() => onRemoveVentilation(index)}
+                          aria-label="Remove ventilation"
+                        />
+                      </Flex>
+                      <Stack spacing={3}>
+                        <FormControl>
+                          <FormLabel>Catégorie</FormLabel>
+                          <Input
+                            value={vent.selectedCategory}
+                            onChange={(e) => onVentilationChange(index, 'selectedCategory', e.target.value)}
+                            placeholder="Select Category"
+                            readOnly
+                            onClick={() => openCategoryModal(index)}
+
+                          />
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel>Montant</FormLabel>
+                          <InputGroup>
+                            <Input
+                              type="number"
+                              value={vent.amount}
+                              onChange={(e) => onVentilationChange(index, 'amount', e.target.value)}
+                            />
+                            <InputRightElement children={<MdEuro />} />
+                          </InputGroup>
+                        </FormControl>
+                      </Stack>
+                    </Box>
+                  ))}
+                  <Button leftIcon={<FaPlus />} onClick={onAddVentilation} colorScheme="blue">
+                    Ajouter une ventilation
+                  </Button>
+                  <Modal isOpen={isCategoryModalOpen} onClose={onCategoryModalClose} size="full" overflow="auto">
+                    <ModalOverlay />
+                    <ModalContent m={0} maxW="100vw">
+                      <ModalHeader>
+                        Affecter une Catégories
+                        <IconButton
+                          aria-label="Close modal"
+                          icon={<FaTimes />}
+                          onClick={onCategoryModalClose}
+                          position="absolute"
+                          right="8px"
+                          top="8px"
+                          size="sm"
+                        />
+                      </ModalHeader>
+                      <ModalBody>
+                        <Container maxW="container.xxl">
+                          <SimpleGrid columns={6} spacing={5}>
+                            {Object.keys(categories).map((categoryKey) => (
+                              <Box p={5} borderWidth="1px" borderRadius="lg" key={categoryKey}>
+                                <Flex align="center" fontSize="xl">
+                                  {icons[categoryKey]}
+                                  <Heading as="h3" ml={3} fontSize="xl">{categoryKey}</Heading>
+                                </Flex>
+                                <VStack align="start">
+                                  {categories[categoryKey].map((item, index) => (
+                                    <Tag size="md" variant="solid" key={index} _hover={{
+                                      background: hoverBg,
+                                      transform: 'scale(1.1)',
+                                      transition: 'background-color 0.2s, transform 0.2s'
+                                    }} _active={{
+                                      background: activeBg,
+                                      transform: 'scale(0.9)',
+                                      transition: 'background-color 0.1s, transform 0.1s'
+                                    }} onClick={(event) => {
+                                      event.preventDefault();
+                                      handleCategorySelect(item);
+                                    }}>
+                                      {item}
+                                    </Tag>
+                                  ))}
+                                </VStack>
+                              </Box>
+                            ))}
+                          </SimpleGrid>
+                        </Container>
+                      </ModalBody>
+                    </ModalContent>
+                  </Modal>
+                </Box>
               </SimpleGrid>
             </Box>
           </>

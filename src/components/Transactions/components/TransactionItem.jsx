@@ -283,36 +283,12 @@ function TransactionItem({ transaction, transactionId }) {
       { id: 1, amount: '', selectedCategory: 'Dépense personnelle' }
     ]
   });
-  const [files, setFiles] = useState([]);  // Manage files here
-
-  const handleInputChangeMontant = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  const [uploadedFileKeys, setUploadedFileKeys] = useState([]);
-
-  const handleVentilationChangeMontant = (index, field, value) => {
-    const updatedVentilations = formData.ventilations.map((vent, idx) => {
-      if (idx === index) {
-        return { ...vent, [field]: value };
-      }
-      return vent;
-    });
-    setFormData(prev => ({ ...prev, ventilations: updatedVentilations }));
-  };
+  const [files, setFiles] = useState([]);  
 
 
-  const addVentilationMontant = () => {
-    setFormData(prev => ({
-      ...prev,
-      ventilations: [...prev.ventilations, { id: prev.ventilations.length + 1, category: '', amount: '', selectedCategory: '' }]
-    }));
-  };
 
-  const removeVentilationMontant = (index) => {
-    const newVentilations = formData.ventilations.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, ventilations: newVentilations }));
-  };
+
+
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
@@ -379,41 +355,51 @@ function TransactionItem({ transaction, transactionId }) {
       console.error('Exception while fetching transaction data:', err);
     }
   }; 
-  useEffect(() => {
-    async function fetchData() {
-      if (transactionId && isDetailOpen) {
-        try {
-          const { data, error } = await supabase
-            .from('transactions')
-            .select('*')
-            .eq('id', transactionId)
-            .single();
-  
-          if (error) {
-            console.error('Error fetching transaction data:', error);
-            return;
-          }
-  
-          if (data) {
-            setFormData({
-              libelle: data.libelle || '',
-              date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
-              montant_total: data.montant_total || 0,
-              annotations: data.annotations || '',
-              justificatifs_url: data.justificatifs_url || [],
-              moyen: data.moyen || '',
-              compte_bancaire: data.compte_bancaire || '',
-              ventilations: data.ventilations || []
-            });
-          }
-        } catch (err) {
-          console.error('Exception while fetching transaction data:', err);
+
+    useEffect(() => {
+      const fetchTransactionData = async () => {
+        if (!transactionId) return;
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('id', transactionId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching transaction:', error);
+          return;
         }
-      }
-    }
+        
+        // Update form state with fetched data
+        if (data) {
+          setTransactionData({
+            libelle: data.libelle || '',
+            date: data.date ? new Date(data.date) : new Date(),
+            montant: data.montant || 0,
+            annotations: data.annotations || ''
+          });
+        }
+      };
   
-    fetchData();
-  }, [transactionId, isDetailOpen]);
+      fetchTransactionData();
+    }, [transactionId]);
+  
+    // Handle input change
+    const handleChange = (e) => {
+      const { name, value } = e.target;
+      setTransactionData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    };
+  
+    // Handle date change specifically for the date picker
+    const handleDateChange = (date) => {
+      setTransactionData(prev => ({
+        ...prev,
+        date: date
+      }));
+    };
   return (
     <>
       <Flex
@@ -674,9 +660,9 @@ function TransactionItem({ transaction, transactionId }) {
                   <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
                     <VStack spacing={4} align="stretch">
                       <FormControl id="transaction-label">
-                        <FormLabel>Libellé</FormLabel>
+                        <FormLabel>Libellée</FormLabel>
                         <Input
-                          value={formData.libelle}
+                                   value={formData.libelle}
                           onChange={(e) => setFormData({ ...formData, libelle: e.target.value })}
                         />
                       </FormControl>

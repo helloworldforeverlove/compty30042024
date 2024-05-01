@@ -66,7 +66,7 @@ const handleCategorySelect = (category) => {
 
 function TransactionItem({ transaction, transactionId }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
-  const { isOpen: isDetailOpen,  onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
+  const { isOpen: isDetailOpen, onOpen: onDetailOpen,  onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
   const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
   const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -236,114 +236,11 @@ function TransactionItem({ transaction, transactionId }) {
 
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
-  const onDetailOpen = () => {
-    // Assurez-vous que formData est à jour avant d'ouvrir le modal
-    fetchTransactionData(transactionId).then(() => {
-      onDetailOpen(); // Ouvre le modal après que les données sont chargées
-    });
-  };
+
   
   // Modifier la fonction fetchTransactionData pour renvoyer une promesse
-  const fetchTransactionData = async (id) => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('id', id)
-      .single();
   
-    if (error) {
-      console.error('Error fetching transaction data:', error);
-      return;
-    }
   
-    // Mettre à jour l'état avec les données chargées
-    setFormData({
-      libelle: data.libelle || '',
-      date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
-      montant_total: data.montant_total || 0,
-      annotations: data.annotations || '',
-      ventilations: data.ventilations || [],
-    });
-    console.log("Transaction data loaded:", data);
-  };
-  useEffect(() => {
-    async function fetchTransactionData(id) {
-      // Fetch transaction data from the database
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching transaction data:', error);
-        return;
-      }
-
-      setFormData(prevFormData => ({
-        ...prevFormData,
-        libelle: data.libelle || '',
-        date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
-        montant_total: data.montant_total || 0,
-        annotations: data.annotations || '',
-        ventilations: data.ventilations || [],
-      }));
-      console.log("formData:", formData); 
-    }
-
-    if (transactionId) {
-      fetchTransactionData(transactionId);
-    }
-  }, [transactionId]);
-  
-  console.log("formData:", formData); 
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      [name]: value
-    }));
-  };  
-
-  const handleDateChange = (date) => {
-    setFormData(prev => ({
-      ...prev,
-      date_transaction: date
-    }));
-  };
-
-  const handleSubmit = async () => {
-    const { error } = await supabase
-      .from('transactions')
-      .update({
-        libelle: formData.libelle,
-        date_transaction: formData.date_transaction,
-        montant_total: parseFloat(formData.montant_total),
-        annotations: formData.annotations,
-      })
-      .eq('id', transactionId);
-
-    if (error) {
-      console.error('Error updating transaction:', error.message);
-      toast({
-        title: "Erreur lors de la mise à jour",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    toast({
-      title: "Transaction mise à jour",
-      description: "La transaction a été mise à jour avec succès.",
-      status: "success",
-      duration: 5000,
-      isClosable: true,
-    });
-  };
   return (
     <>
       <Flex

@@ -97,16 +97,6 @@ const FilePreview = ({ file, onDelete, onSelect }) => {
     </HStack>
   );
 };
-
-
-
-
-
-
-
-
-
-
 const onCategoryModalClose = () => {
   setIsCategoryModalOpen(false);
 };

@@ -345,7 +345,6 @@ function TransactionItem({ transaction, transactionId }) {
     }
   };
 
-
   const [transactionData, setTransactionData] = useState(null);
 
   const fetchTransactionData = async (id) => {
@@ -370,15 +369,17 @@ function TransactionItem({ transaction, transactionId }) {
       console.error('Exception while fetching transaction data:', err);
     }
   };
-
-
-
   useEffect(() => {
-    if (transactionId && isDetailOpen) {
-      console.log('Fetching data for transaction ID:', transactionId);
-      fetchTransactionData(transactionId);
-    }
-  }, [transactionId, isDetailOpen]); // Ensure dependencies are correctly listed
+    const fetchAndSetData = async () => {
+      if (transactionId && isDetailOpen) {
+        console.log('Fetching data for transaction ID:', transactionId);
+        await fetchTransactionData(transactionId);
+      }
+    };
+  
+    fetchAndSetData();
+  }, [transactionId, isDetailOpen]); // S'assurer que fetchTransactionData est appelé à l'ouverture du modal
+  
 
   return (
     <>
@@ -644,7 +645,6 @@ function TransactionItem({ transaction, transactionId }) {
                         <Input
                           value={formData.libelle}
                           onChange={(e) => setFormData({ ...formData, libelle: e.target.value })}
-                          name="libelle"
                         />
                       </FormControl>
 
@@ -654,10 +654,6 @@ function TransactionItem({ transaction, transactionId }) {
                           selected={formData.date_transaction}
                           onChange={(date) => setFormData({ ...formData, date_transaction: date })}
                           dateFormat="dd/MM/yyyy"
-                          popperPlacement="bottom-start"
-                          showWeekNumbers
-                          calendarStartDay={1}
-                          customInput={<Input />}
                         />
                       </FormControl>
 
@@ -665,20 +661,16 @@ function TransactionItem({ transaction, transactionId }) {
                         <FormLabel>Montant</FormLabel>
                         <Input
                           type="number"
-                          step="0.01"
                           value={formData.montant_total}
                           onChange={(e) => setFormData({ ...formData, montant_total: parseFloat(e.target.value) })}
-                          name="montant_total"
                         />
                       </FormControl>
 
                       <FormControl id="transaction-annotations">
                         <FormLabel>Annotations</FormLabel>
                         <Input
-                          placeholder="Ajouter des mots clés"
                           value={formData.annotations}
                           onChange={(e) => setFormData({ ...formData, annotations: e.target.value })}
-                          name="annotations"
                         />
                       </FormControl>
                       <Button colorScheme="blue" onClick={handleSubmit}>

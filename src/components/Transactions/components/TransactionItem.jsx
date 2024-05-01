@@ -32,7 +32,6 @@ import {
   chakra,
   HStack,
 } from '@chakra-ui/react';
-import { AttachmentIcon, CloseIcon } from '@chakra-ui/icons';
 import { CiPen } from "react-icons/ci";
 import { supabase } from './../../../supabaseClient'
 import { GoPaperclip } from 'react-icons/go';
@@ -42,61 +41,14 @@ import { MdEuro } from 'react-icons/md';
 import { FcFullTrash, FcWorkflow, FcSupport, FcBullish, FcDebt, FcFactory, FcAutomotive, FcAlarmClock, FcDonate } from 'react-icons/fc';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { useDropzone } from 'react-dropzone';
 import { useToast } from '@chakra-ui/react';
 import { FcApproval } from "react-icons/fc";
 import CategorySelectionModal from './CategorySelectionModal';
-import { LiaCloudUploadAltSolid } from "react-icons/lia";
 
 
 
 const ChakraDatePicker = chakra(DatePicker);
 
-const FilePreview = ({ file, onDelete, onSelect }) => {
-  const isImage = file.type.startsWith('image/');
-  const fileBg = useColorModeValue('red.50', 'gray.700');
-  const fileBorderColor = useColorModeValue('red.200', 'gray.600');
-  const textColor = useColorModeValue('gray.700', 'red.50');
-
-  return (
-    <HStack
-      borderWidth="1px"
-      borderRadius="lg"
-      p={1}
-      m={1}
-      justifyContent="space-between"
-      alignItems="center"
-      bg={fileBg}
-      borderColor={fileBorderColor}
-      width="full"
-      onClick={() => onSelect(file)}
-    >
-      <HStack spacing={2}>
-        {isImage ? (
-          <Image src={file.preview} boxSize="50px" />
-        ) : (
-          <AttachmentIcon color={textColor} />
-        )}
-        <Text color={textColor} isTruncated maxWidth="calc(100% - 3rem)" title={file.name}>
-          {file.name}
-        </Text>
-      </HStack>
-      <Tooltip label="Supprimer le fichier" hasArrow>
-        <IconButton
-          icon={<FcFullTrash />}
-          onClick={(e) => {
-            e.stopPropagation();  // Prevent onSelect from being called when deleting
-            onDelete(file);
-          }}
-          aria-label="Delete file"
-          size="sm"
-          isRound={true}
-          variant="ghost"
-        />
-      </Tooltip>
-    </HStack>
-  );
-};
 const onCategoryModalClose = () => {
   setIsCategoryModalOpen(false);
 };
@@ -189,21 +141,9 @@ function TransactionItem({ transaction, transactionId }) {
     CotisationsEtTaxes: ['Cotisation sociale Urssaf', 'Cotisation retraite', 'Cotisation facultative', 'Cotisation professionnelle', 'CFE', 'Autre impôt', 'Amende et pénalité']
   };
 
-  const icons = {
-    Revenues: <FcBullish />,
-    Remunerations: <FcDebt />,
-    Functionnement: <FcFactory />,
-    Deplacements: <FcAutomotive />,
-    FraisFixes: <FcAlarmClock />,
-    CotisationsEtTaxes: <FcDonate />
-  };
 
-  const iconColor = useColorModeValue('gray.200', 'gray.300');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const hoverBg = useColorModeValue("green.100", "green.700");
-  const activeBg = useColorModeValue("blue.300", "blue.800");
 
-  // Handler to close the modal and set category
   const handleCategorySelect = (category, index) => {
     const newVentilations = [...tempVentilations];
     newVentilations[index].category = category;
@@ -284,11 +224,6 @@ function TransactionItem({ transaction, transactionId }) {
     ]
   });
   const [files, setFiles] = useState([]);
-
-
-
-
-
   const [displayText, setDisplayText] = useState('');
 
   useEffect(() => {
@@ -301,10 +236,6 @@ function TransactionItem({ transaction, transactionId }) {
 
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
-
-
-
-
   useEffect(() => {
     async function fetchTransactionData(id) {
       // Fetch transaction data from the database
@@ -313,13 +244,12 @@ function TransactionItem({ transaction, transactionId }) {
         .select('*')
         .eq('id', id)
         .single();
-  
+
       if (error) {
         console.error('Error fetching transaction data:', error);
         return;
       }
-  
-      // Update the formData state with fetched data
+
       setFormData(prevFormData => ({
         ...prevFormData,
         libelle: data.libelle || '',
@@ -328,16 +258,15 @@ function TransactionItem({ transaction, transactionId }) {
         annotations: data.annotations || '',
         ventilations: data.ventilations || [],
       }));
-      console.log("formData:", formData); // Ajout du console log
+      console.log("formData:", formData); 
     }
-  
+
     if (transactionId) {
       fetchTransactionData(transactionId);
     }
   }, [transactionId]);
   
-  
-  console.log("formData:", formData); // Ajout du console log
+  console.log("formData:", formData); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;

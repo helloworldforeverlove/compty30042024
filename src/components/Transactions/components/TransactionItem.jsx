@@ -505,14 +505,12 @@ function TransactionItem({ transaction, transactionId }) {
                         <Input
                           name="libelle"
                           value={transaction.libelle}
-                          onChange={handleChange}
                         />
                       </FormControl>
                       <FormControl mt={4}>
                         <FormLabel>Date</FormLabel>
                         <ChakraDatePicker
                           selected={transaction.date_transaction}
-                          onChange={handleDateChange}
                           dateFormat="dd/MM/yyyy"
                         />
                       </FormControl>
@@ -522,7 +520,6 @@ function TransactionItem({ transaction, transactionId }) {
                           name="montant_total"
                           type="number"
                           value={transaction.montant_total}
-                          onChange={handleChange}
                         />
                       </FormControl>
 
@@ -533,7 +530,7 @@ function TransactionItem({ transaction, transactionId }) {
                           onChange={(e) => setFormData({ ...formData, annotations: e.target.value })}
                         />
                       </FormControl>
-                      <Button colorScheme="blue" onClick={handleSubmit}>
+                      <Button colorScheme="blue" >
                         Enregistrer les modifications
                       </Button>
                     </VStack>

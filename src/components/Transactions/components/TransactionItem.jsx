@@ -389,12 +389,15 @@ function TransactionItem({ transaction, transactionId }) {
             .eq('id', transactionId)
             .single();
   
-          if (error) throw new Error(error.message);
+          if (error) {
+            console.error('Error fetching transaction data:', error);
+            return;
+          }
   
           if (data) {
             setFormData({
               libelle: data.libelle || '',
-              date_transaction: new Date(data.date_transaction) || new Date(),
+              date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
               montant_total: data.montant_total || 0,
               annotations: data.annotations || '',
               justificatifs_url: data.justificatifs_url || [],
@@ -403,16 +406,14 @@ function TransactionItem({ transaction, transactionId }) {
               ventilations: data.ventilations || []
             });
           }
-        } catch (error) {
-          console.error('Error fetching transaction data:', error);
+        } catch (err) {
+          console.error('Exception while fetching transaction data:', err);
         }
       }
     }
   
     fetchData();
-  }, [transactionId, isDetailOpen]); // Dépendances correctement configurées
-  
-
+  }, [transactionId, isDetailOpen]);
   return (
     <>
       <Flex

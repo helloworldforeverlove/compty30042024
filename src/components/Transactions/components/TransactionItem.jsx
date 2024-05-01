@@ -320,13 +320,15 @@ function TransactionItem({ transaction, transactionId }) {
       }
   
       // Update the formData state with fetched data
-      setFormData({
+      setFormData(prevFormData => ({
+        ...prevFormData,
         libelle: data.libelle || '',
         date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
         montant_total: data.montant_total || 0,
         annotations: data.annotations || '',
         ventilations: data.ventilations || [],
-      });
+      }));
+      console.log("formData:", formData); // Ajout du console log
     }
   
     if (transactionId) {
@@ -334,6 +336,8 @@ function TransactionItem({ transaction, transactionId }) {
     }
   }, [transactionId]);
   
+  
+  console.log("formData:", formData); // Ajout du console log
 
   const handleChange = (e) => {
     const { name, value } = e.target;

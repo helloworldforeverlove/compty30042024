@@ -303,40 +303,7 @@ function TransactionItem({ transaction, transactionId }) {
   }, [files]);
 
 
-  const [transactionData, setTransactionData] = useState(null);
-  const fetchTransactionData = async (id) => {
-    console.log('Attempting to fetch data for transaction ID:', id);
-    try {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('id', id)
-        .single();
 
-      console.log('Response from Supabase:', { data, error }); // Check the actual response
-
-      if (error) {
-        console.error('Error fetching transaction data:', error);
-        return;
-      }
-
-      if (!data) {
-        console.error('No data returned from the database for ID:', id);
-        return;
-      }
-
-      console.log('Setting form data with:', data);
-      setFormData({
-        libelle: data.libelle || '',
-        date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
-        montant_total: data.montant_total || 0,
-        annotations: data.annotations || '',
-        ventilations: data.ventilations || []
-      });
-    } catch (err) {
-      console.error('Exception while fetching transaction data:', err);
-    }
-  };
 
   useEffect(() => {
     async function fetchTransactionData(id) {

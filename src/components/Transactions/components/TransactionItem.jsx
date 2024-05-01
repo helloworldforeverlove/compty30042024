@@ -245,7 +245,7 @@ function TransactionItem({ transaction, transactionId }) {
         montant_total: transaction.montant_total,
         annotations: transaction.annotations
       })
-      .eq('id', transactionId);  // Assurez-vous que transactionId est correctement passé comme prop
+      .eq('id', transactionId);
 
     if (error) {
       toast({
@@ -265,9 +265,6 @@ function TransactionItem({ transaction, transactionId }) {
       });
     }
   };
-
-
-
   return (
     <>
       <Flex

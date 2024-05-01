@@ -614,7 +614,7 @@ function TransactionItem({ transaction, transactionId }) {
                   Ajout d'une dépense professionnelle
                 </Heading>
                 <Box>
-                  <Button mr={3} onClick={onToggle}>
+                  <Button mr={3} onClick={onDetailToggle}>
                     Fermer
                   </Button>
                   <Button colorScheme="pink" onClick={() => onSubmitTransaction(files)}>
@@ -643,14 +643,13 @@ function TransactionItem({ transaction, transactionId }) {
                     <VStack spacing={4} align="stretch">
                       <FormControl id="transaction-label">
                         <FormLabel>Libellé</FormLabel>
-                        <Input value={formData.libelle} onChange={onChange} name="libelle" />
+                        <Input value={formData.libelle}  name="libelle" />
                       </FormControl>
 
                       <FormControl id="transaction-date">
                         <FormLabel>Date</FormLabel>
                         <DatePicker
-                          selected={selectedDate}
-                          onChange={handleDateChange}
+                          
                           dateFormat="dd/MM/yyyy"
                           customInput={<Input />}
                           popperPlacement="bottom-start"
@@ -665,7 +664,7 @@ function TransactionItem({ transaction, transactionId }) {
                           type="number"
                           step="0.01"
                           value={formData.montant_total}
-                          onChange={onChange}
+                          
                           name="montant_total"
                         />
                       </FormControl>
@@ -676,10 +675,10 @@ function TransactionItem({ transaction, transactionId }) {
                           <Input
                             placeholder="Ajouter des mots clés"
                             value={formData.annotations}
-                            onChange={onChange}
+                            
                             name="annotations"
                           />
-                          {annotations && (
+                          
                             <InputRightElement>
                               <IconButton
                                 aria-label="Clear annotations"
@@ -687,10 +686,8 @@ function TransactionItem({ transaction, transactionId }) {
                                 size="sm"
                                 onClick={() => setAnnotations('')}
                                 isRound={true}
-                                style={closeButtonStyle}
                               />
                             </InputRightElement>
-                          )}
                         </InputGroup>
                       </FormControl>
                     </VStack>

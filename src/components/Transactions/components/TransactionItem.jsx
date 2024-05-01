@@ -66,7 +66,7 @@ const handleCategorySelect = (category) => {
 
 function TransactionItem({ transaction, transactionId }) {
   const { isOpen: isUploadOpen, onOpen: onUploadOpen, onClose: onUploadClose } = useDisclosure();
-  const { isOpen: isDetailOpen, onOpen: onDetailOpen,  onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
+  const { isOpen: isDetailOpen, onOpen: onDetailOpen, onClose: onDetailClose, onToggle: onDetailToggle } = useDisclosure();
   const { isOpen: isAnnotationModalOpen, onOpen: onAnnotationModalOpen, onClose: onAnnotationModalClose } = useDisclosure();
   const { isOpen: isVentilationModalOpen, onOpen: onVentilationModalOpen, onClose: onVentilationModalClose } = useDisclosure();
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -211,18 +211,6 @@ function TransactionItem({ transaction, transactionId }) {
     }
   }, [selectedItem, activeVentilationIndex, ventilations]);
 
-  const [formData, setFormData] = useState({
-    libelle: '',
-    date_transaction: new Date(),
-    montant_total: 0,
-    annotations: '',
-    justificatifs_url: [],
-    moyen: '',
-    compte_bancaire: '',
-    ventilations: [
-      { id: 1, amount: '', selectedCategory: 'Dépense personnelle' }
-    ]
-  });
   const [files, setFiles] = useState([]);
   const [displayText, setDisplayText] = useState('');
 
@@ -236,11 +224,50 @@ function TransactionItem({ transaction, transactionId }) {
 
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setTransaction(prev => ({ ...prev, [name]: value }));
+  };
 
-  
-  // Modifier la fonction fetchTransactionData pour renvoyer une promesse
-  
-  
+  const handleDateChange = (date) => {
+    setTransaction(prev => ({ ...prev, date_transaction: date }));
+  };
+
+  const handleAmountChangeBis = (value) => {
+    setTransaction(prev => ({ ...prev, montant_total: parseFloat(value) }));
+  };
+  const updateTransaction = async () => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .update({
+        libelle: transaction.libelle,
+        date_transaction: transaction.date_transaction,
+        montant_total: transaction.montant_total,
+        annotations: transaction.annotations
+      })
+      .eq('id', transactionId);  // Assurez-vous que transactionId est correctement passé comme prop
+
+    if (error) {
+      toast({
+        title: "Erreur lors de la mise à jour",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: "Transaction mise à jour",
+        description: "La transaction a été mise à jour avec succès.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
+
+
+
   return (
     <>
       <Flex
@@ -505,32 +532,35 @@ function TransactionItem({ transaction, transactionId }) {
                         <Input
                           name="libelle"
                           value={transaction.libelle}
+                          onChange={handleChange}
                         />
                       </FormControl>
                       <FormControl mt={4}>
                         <FormLabel>Date</FormLabel>
                         <ChakraDatePicker
                           selected={transaction.date_transaction}
+                          onChange={handleDateChange}
                           dateFormat="dd/MM/yyyy"
                         />
                       </FormControl>
                       <FormControl mt={4}>
-                        <FormLabel>Montantss</FormLabel>
+                        <FormLabel>Montant</FormLabel>
                         <Input
                           name="montant_total"
                           type="number"
                           value={transaction.montant_total}
+                          onChange={(e) => handleAmountChangeBis(e.target.value)}
                         />
                       </FormControl>
-
                       <FormControl id="transaction-annotations">
                         <FormLabel>Annotations</FormLabel>
                         <Input
                           value={transaction.annotations}
-                          onChange={(e) => setFormData({ ...formData, annotations: e.target.value })}
+                          onChange={handleChange}
+                          name="annotations"
                         />
                       </FormControl>
-                      <Button colorScheme="blue" >
+                      <Button colorScheme="blue" onClick={updateTransaction}>
                         Enregistrer les modifications
                       </Button>
                     </VStack>

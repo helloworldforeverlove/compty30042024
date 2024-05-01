@@ -283,7 +283,7 @@ function TransactionItem({ transaction, transactionId }) {
       { id: 1, amount: '', selectedCategory: 'Dépense personnelle' }
     ]
   });
-  const [files, setFiles] = useState([]);  
+  const [files, setFiles] = useState([]);
 
 
 
@@ -302,24 +302,6 @@ function TransactionItem({ transaction, transactionId }) {
     setDisplayText(JSON.stringify(fileInfo));
   }, [files]);
 
-  const handleSubmit = async () => {
-    const { error } = await supabase
-      .from('transactions')
-      .update({
-        libelle: formData.libelle,
-        date_transaction: formData.date_transaction,
-        montant_total: formData.montant_total,
-        annotations: formData.annotations
-      })
-      .eq('id', transaction.id);
-
-    if (error) {
-      console.error('Error updating transaction:', error.message);
-    } else {
-      console.log('Transaction updated successfully!');
-      onDetailClose(); // Fermer le modal après la mise à jour
-    }
-  };
 
   const [transactionData, setTransactionData] = useState(null);
   const fetchTransactionData = async (id) => {
@@ -330,19 +312,19 @@ function TransactionItem({ transaction, transactionId }) {
         .select('*')
         .eq('id', id)
         .single();
-  
+
       console.log('Response from Supabase:', { data, error }); // Check the actual response
-  
+
       if (error) {
         console.error('Error fetching transaction data:', error);
         return;
       }
-  
+
       if (!data) {
         console.error('No data returned from the database for ID:', id);
         return;
       }
-  
+
       console.log('Setting form data with:', data);
       setFormData({
         libelle: data.libelle || '',
@@ -354,52 +336,87 @@ function TransactionItem({ transaction, transactionId }) {
     } catch (err) {
       console.error('Exception while fetching transaction data:', err);
     }
-  }; 
+  };
 
-    useEffect(() => {
-      const fetchTransactionData = async () => {
-        if (!transactionId) return;
-        const { data, error } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('id', transactionId)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching transaction:', error);
-          return;
-        }
-        
-        // Update form state with fetched data
-        if (data) {
-          setTransactionData({
-            libelle: data.libelle || '',
-            date: data.date ? new Date(data.date) : new Date(),
-            montant: data.montant || 0,
-            annotations: data.annotations || ''
-          });
-        }
-      };
-  
-      fetchTransactionData();
-    }, [transactionId]);
-  
-    // Handle input change
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setTransactionData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    };
-  
-    // Handle date change specifically for the date picker
-    const handleDateChange = (date) => {
-      setTransactionData(prev => ({
-        ...prev,
-        date: date
-      }));
-    };
+  useEffect(() => {
+    async function fetchTransaction() {
+      if (!transactionId) return;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', transactionId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching transaction:', error);
+        toast({
+          title: "Erreur de chargement",
+          description: error.message,
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      setFormData({
+        libelle: data.libelle || '',
+        date_transaction: data.date_transaction ? new Date(data.date_transaction) : new Date(),
+        montant_total: data.montant_total || 0,
+        annotations: data.annotations || '',
+      });
+    }
+
+    fetchTransaction();
+  }, [transactionId, toast]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      [name]: value
+    }));
+  };  
+
+  const handleDateChange = (date) => {
+    setFormData(prev => ({
+      ...prev,
+      date_transaction: date
+    }));
+  };
+
+  const handleSubmit = async () => {
+    const { error } = await supabase
+      .from('transactions')
+      .update({
+        libelle: formData.libelle,
+        date_transaction: formData.date_transaction,
+        montant_total: parseFloat(formData.montant_total),
+        annotations: formData.annotations,
+      })
+      .eq('id', transactionId);
+
+    if (error) {
+      console.error('Error updating transaction:', error.message);
+      toast({
+        title: "Erreur lors de la mise à jour",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    toast({
+      title: "Transaction mise à jour",
+      description: "La transaction a été mise à jour avec succès.",
+      status: "success",
+      duration: 5000,
+      isClosable: true,
+    });
+  };
   return (
     <>
       <Flex
@@ -659,29 +676,29 @@ function TransactionItem({ transaction, transactionId }) {
                 >
                   <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
                     <VStack spacing={4} align="stretch">
-                      <FormControl id="transaction-label">
-                        <FormLabel>Libellée</FormLabel>
+                      <FormControl>
+                        <FormLabel>Libellé</FormLabel>
                         <Input
-                                   value={formData.libelle}
-                          onChange={(e) => setFormData({ ...formData, libelle: e.target.value })}
+                          name="libelle"
+                          value={formData.libelle}
+                          onChange={handleChange}
                         />
                       </FormControl>
-
-                      <FormControl id="transaction-date">
+                      <FormControl mt={4}>
                         <FormLabel>Date</FormLabel>
                         <ChakraDatePicker
                           selected={formData.date_transaction}
-                          onChange={(date) => setFormData({ ...formData, date_transaction: date })}
+                          onChange={handleDateChange}
                           dateFormat="dd/MM/yyyy"
                         />
                       </FormControl>
-
-                      <FormControl id="transaction-amount">
+                      <FormControl mt={4}>
                         <FormLabel>Montant</FormLabel>
                         <Input
+                          name="montant_total"
                           type="number"
                           value={formData.montant_total}
-                          onChange={(e) => setFormData({ ...formData, montant_total: parseFloat(e.target.value) })}
+                          onChange={handleChange}
                         />
                       </FormControl>
 

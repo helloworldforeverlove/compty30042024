@@ -55,23 +55,17 @@ function UpdateTransaction({ selectedTransactionId }) {
   });
   const ChakraDatePicker = chakra(DatePicker);
   const [loading, setLoading] = useState(false);
-  const toast = useToast();
-  // useEffect to update transaction details when selectedTransactionId changes
+
   useEffect(() => {
     if (selectedTransactionId) {
       fetchTransaction(selectedTransactionId);
     }
-  }, [selectedTransactionId]); // Dependency array includes selectedTransactionId
+  }, [selectedTransactionId]);
 
   const fetchTransaction = async (id) => {
     if (!id) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a valid transaction ID.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      // Handle error state or log error, if necessary
+      console.error('Invalid transaction ID');
       return;
     }
 
@@ -83,7 +77,12 @@ function UpdateTransaction({ selectedTransactionId }) {
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Log or handle error as needed without toast
+        console.error(`Error fetching transaction: ${error.message}`);
+        return;
+      }
+
       if (data) {
         setTransaction({
           id,
@@ -92,31 +91,13 @@ function UpdateTransaction({ selectedTransactionId }) {
           montant_total: data.montant_total,
           annotations: data.annotations
         });
-        toast({
-          title: 'Transaction Loaded',
-          description: 'Modify and update as necessary.',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
       } else {
+        // Reset transaction if not found, handle not found state if needed
         setTransaction({ id: '', libelle: '', date_transaction: new Date(), montant_total: '', annotations: '' });
-        toast({
-          title: 'Not Found',
-          description: 'No transaction found with the given ID.',
-          status: 'warning',
-          duration: 3000,
-          isClosable: true,
-        });
       }
     } catch (error) {
-      toast({
-        title: 'Fetching Failed',
-        description: `Error: ${error.message}`,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      // Log or handle catch block error as needed
+      console.error(`Error fetching transaction: ${error.message}`);
     } finally {
       setLoading(false);
     }

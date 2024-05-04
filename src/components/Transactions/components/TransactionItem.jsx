@@ -45,7 +45,7 @@ import { useToast } from '@chakra-ui/react';
 import { FcApproval } from "react-icons/fc";
 import CategorySelectionModal from './CategorySelectionModal';
 
-function UpdateTransaction() {
+function UpdateTransaction({ selectedTransactionId }) {
   const [transaction, setTransaction] = useState({
     id: '',
     libelle: '',
@@ -56,6 +56,12 @@ function UpdateTransaction() {
   const ChakraDatePicker = chakra(DatePicker);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  // useEffect to update transaction details when selectedTransactionId changes
+  useEffect(() => {
+    if (selectedTransactionId) {
+      fetchTransaction(selectedTransactionId);
+    }
+  }, [selectedTransactionId]); // Dependency array includes selectedTransactionId
 
   const fetchTransaction = async (id) => {
     if (!id) {
@@ -240,6 +246,16 @@ function TransactionItem({ transaction, transactionId }) {
   const openCategoryModal = (index) => {
     setActiveVentilationIndex(index);
     setIsCategoryModalOpen(true);
+  };
+  const [selectedTransactionId, setSelectedTransactionId] = useState('');
+
+  // Function to handle row click
+  const handleRowClick = (transactionId) => {
+    setSelectedTransactionId(transactionId);
+  };
+  const handleTransactionClick = (transactionId) => {
+    handleRowClick(transactionId); // Set the selected transaction ID
+    onDetailToggle();              // Toggle the detail view
   };
 
   const [ventilations, setVentilations] = useState(transaction.ventilations || []);
@@ -466,9 +482,13 @@ function TransactionItem({ transaction, transactionId }) {
             </Box>
           ))}
         </Box>
-        <Text fontSize="lg" fontWeight="bold" color={amountColor} onClick={onDetailToggle}>
+        <Text 
+        fontSize="lg" 
+        fontWeight="bold" 
+        color={amountColor} 
+        onClick={() => handleTransactionClick(transaction.id)}>
           {`${transaction.montant_total.toFixed(2)} €`}
-        </Text>
+      </Text>
       </Flex>
 
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
@@ -654,7 +674,7 @@ function TransactionItem({ transaction, transactionId }) {
                   margin="0 auto"
                 >
                   <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
-                  <UpdateTransaction />
+                  <UpdateTransaction selectedTransactionId={selectedTransactionId} />
                   </Box>
                   <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
                     <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>

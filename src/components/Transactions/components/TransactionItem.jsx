@@ -45,23 +45,190 @@ import { useToast } from '@chakra-ui/react';
 import { FcApproval } from "react-icons/fc";
 import CategorySelectionModal from './CategorySelectionModal';
 
+function UpdateTransaction() {
+  const [transaction, setTransaction] = useState({
+    id: '',
+    libelle: '',
+    date_transaction: new Date(),
+    montant_total: '',
+    annotations: ''
+  });
+  const ChakraDatePicker = chakra(DatePicker);
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
+  const fetchTransaction = async (id) => {
+    if (!id) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid transaction ID.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
 
-const ChakraDatePicker = chakra(DatePicker);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-const onCategoryModalClose = () => {
-  setIsCategoryModalOpen(false);
-};
+      if (error) throw error;
+      if (data) {
+        setTransaction({
+          id,
+          libelle: data.libelle,
+          date_transaction: new Date(data.date_transaction),
+          montant_total: data.montant_total,
+          annotations: data.annotations
+        });
+        toast({
+          title: 'Transaction Loaded',
+          description: 'Modify and update as necessary.',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        setTransaction({ id: '', libelle: '', date_transaction: new Date(), montant_total: '', annotations: '' });
+        toast({
+          title: 'Not Found',
+          description: 'No transaction found with the given ID.',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Fetching Failed',
+        description: `Error: ${error.message}`,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const handleCategorySelect = (category) => {
-  // S'assurer que l'index est valide
-  if (activeVentilationIndex != null && ventilations[activeVentilationIndex]) {
-    onVentilationChange(activeVentilationIndex, 'selectedCategory', category);
-    onCategoryModalClose();
-  } else {
-    console.error("Index de ventilation non valide lors de la sélection de la catégorie");
-  }
-};
+  const handleUpdate = async () => {
+    const { id, libelle, date_transaction, montant_total, annotations } = transaction;
+    if (!id) {
+      toast({
+        title: 'Error',
+        description: 'Please provide the transaction ID.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('transactions')
+        .update({ libelle, date_transaction, montant_total, annotations })
+        .match({ id });
+
+      if (error) throw error;
+      toast({
+        title: 'Updated Successfully',
+        description: 'Transaction updated successfully!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Update Failed',
+        description: `Error: ${error.message}`,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setTransaction(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleDateChange = date => {
+    setTransaction(prev => ({
+      ...prev,
+      date_transaction: date
+    }));
+  };
+
+  const handleAmountChange = value => {
+    setTransaction(prev => ({
+      ...prev,
+      montant_total: value
+    }));
+  };
+
+  return (
+    <VStack spacing={4} align="stretch">
+      <FormControl>
+        <FormLabel>ID de Transaction</FormLabel>
+        <Input
+          name="id"
+          value={transaction.id}
+          onChange={handleChange}
+          onBlur={() => fetchTransaction(transaction.id)}
+        />
+      </FormControl>
+      <FormControl mt={4}>
+        <FormLabel>Libellé</FormLabel>
+        <Input
+          name="libelle"
+          value={transaction.libelle}
+          onChange={handleChange}
+        />
+      </FormControl>
+      <FormControl mt={4}>
+        <FormLabel>Date</FormLabel>
+        <ChakraDatePicker
+          selected={transaction.date_transaction}
+          onChange={handleDateChange}
+          dateFormat="dd/MM/yyyy"
+        />
+      </FormControl>
+      <FormControl mt={4}>
+        <FormLabel>Montant</FormLabel>
+        <Input
+          name="montant_total"
+          type="number"
+          value={transaction.montant_total}
+          onChange={(e) => handleAmountChange(e.target.value)}
+        />
+      </FormControl>
+      <FormControl mt={4}>
+        <FormLabel>Annotations</FormLabel>
+        <Input
+          name="annotations"
+          value={transaction.annotations}
+          onChange={handleChange}
+        />
+      </FormControl>
+      <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
+        Enregistrer les modifications
+      </Button>
+    </VStack>
+  );
+}
 
 
 function TransactionItem({ transaction, transactionId }) {
@@ -229,42 +396,6 @@ function TransactionItem({ transaction, transactionId }) {
     setTransaction(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (date) => {
-    setTransaction(prev => ({ ...prev, date_transaction: date }));
-  };
-
-  const handleAmountChangeBis = (value) => {
-    setTransaction(prev => ({ ...prev, montant_total: parseFloat(value) }));
-  };
-  const updateTransaction = async () => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .update({
-        libelle: transaction.libelle,
-        date_transaction: transaction.date_transaction,
-        montant_total: transaction.montant_total,
-        annotations: transaction.annotations
-      })
-      .eq('id', transactionId);
-
-    if (error) {
-      toast({
-        title: "Erreur lors de la mise à jour",
-        description: error.message,
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    } else {
-      toast({
-        title: "Transaction mise à jour",
-        description: "La transaction a été mise à jour avec succès.",
-        status: "success",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
   return (
     <>
       <Flex
@@ -523,44 +654,7 @@ function TransactionItem({ transaction, transactionId }) {
                   margin="0 auto"
                 >
                   <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
-                    <VStack spacing={4} align="stretch">
-                      <FormControl>
-                        <FormLabel>Libellé</FormLabel>
-                        <Input
-                          name="libelle"
-                          value={transaction.libelle}
-                          onChange={handleChange}
-                        />
-                      </FormControl>
-                      <FormControl mt={4}>
-                        <FormLabel>Date</FormLabel>
-                        <ChakraDatePicker
-                          selected={transaction.date_transaction}
-                          onChange={handleDateChange}
-                          dateFormat="dd/MM/yyyy"
-                        />
-                      </FormControl>
-                      <FormControl mt={4}>
-                        <FormLabel>Montant</FormLabel>
-                        <Input
-                          name="montant_total"
-                          type="number"
-                          value={transaction.montant_total}
-                          onChange={(e) => handleAmountChangeBis(e.target.value)}
-                        />
-                      </FormControl>
-                      <FormControl id="transaction-annotations">
-                        <FormLabel>Annotations</FormLabel>
-                        <Input
-                          value={transaction.annotations}
-                          onChange={handleChange}
-                          name="annotations"
-                        />
-                      </FormControl>
-                      <Button colorScheme="blue" onClick={updateTransaction}>
-                        Enregistrer les modifications
-                      </Button>
-                    </VStack>
+                  <UpdateTransaction />
                   </Box>
                   <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
                     <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>

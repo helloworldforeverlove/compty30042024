@@ -51,7 +51,8 @@ function UpdateTransaction({ selectedTransactionId }) {
     libelle: '',
     date_transaction: new Date(),
     montant_total: '',
-    annotations: ''
+    annotations: '',
+    justificatifs_url: []
   });
   const ChakraDatePicker = chakra(DatePicker);
   const [loading, setLoading] = useState(false);
@@ -63,12 +64,6 @@ function UpdateTransaction({ selectedTransactionId }) {
   }, [selectedTransactionId]);
 
   const fetchTransaction = async (id) => {
-    if (!id) {
-      // Handle error state or log error, if necessary
-      console.error('Invalid transaction ID');
-      return;
-    }
-
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -78,7 +73,6 @@ function UpdateTransaction({ selectedTransactionId }) {
         .single();
 
       if (error) {
-        // Log or handle error as needed without toast
         console.error(`Error fetching transaction: ${error.message}`);
         return;
       }
@@ -89,14 +83,13 @@ function UpdateTransaction({ selectedTransactionId }) {
           libelle: data.libelle,
           date_transaction: new Date(data.date_transaction),
           montant_total: data.montant_total,
-          annotations: data.annotations
+          annotations: data.annotations,
+          justificatifs_url: JSON.parse(data.justificatifs_url || '[]') // Parsing JSON or default to empty array
         });
       } else {
-        // Reset transaction if not found, handle not found state if needed
-        setTransaction({ id: '', libelle: '', date_transaction: new Date(), montant_total: '', annotations: '' });
+        setTransaction({ id: '', libelle: '', date_transaction: new Date(), montant_total: '', annotations: '', justificatifs_url: [] });
       }
     } catch (error) {
-      // Log or handle catch block error as needed
       console.error(`Error fetching transaction: ${error.message}`);
     } finally {
       setLoading(false);
@@ -104,15 +97,9 @@ function UpdateTransaction({ selectedTransactionId }) {
   };
 
   const handleUpdate = async () => {
-    const { id, libelle, date_transaction, montant_total, annotations } = transaction;
+    const { id, libelle, date_transaction, montant_total, annotations, justificatifs_url } = transaction;
     if (!id) {
-      toast({
-        title: 'Error',
-        description: 'Please provide the transaction ID.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      console.error('Please provide the transaction ID.');
       return;
     }
 
@@ -120,25 +107,13 @@ function UpdateTransaction({ selectedTransactionId }) {
       setLoading(true);
       const { error } = await supabase
         .from('transactions')
-        .update({ libelle, date_transaction, montant_total, annotations })
+        .update({ libelle, date_transaction, montant_total, annotations, justificatifs_url: JSON.stringify(justificatifs_url) })
         .match({ id });
 
       if (error) throw error;
-      toast({
-        title: 'Updated Successfully',
-        description: 'Transaction updated successfully!',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      console.log('Transaction updated successfully!');
     } catch (error) {
-      toast({
-        title: 'Update Failed',
-        description: `Error: ${error.message}`,
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      console.error(`Update failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -166,17 +141,15 @@ function UpdateTransaction({ selectedTransactionId }) {
     }));
   };
 
+  const handleJustificatifChange = (newJustificatifs) => {
+    setTransaction(prev => ({
+      ...prev,
+      justificatifs_url: newJustificatifs
+    }));
+  };
+
   return (
     <VStack spacing={4} align="stretch">
-      <FormControl>
-        <FormLabel>ID de Transaction</FormLabel>
-        <Input
-          name="id"
-          value={transaction.id}
-          onChange={handleChange}
-          onBlur={() => fetchTransaction(transaction.id)}
-        />
-      </FormControl>
       <FormControl mt={4}>
         <FormLabel>Libellé</FormLabel>
         <Input
@@ -209,6 +182,15 @@ function UpdateTransaction({ selectedTransactionId }) {
           value={transaction.annotations}
           onChange={handleChange}
         />
+      </FormControl>
+      <FormControl mt={4}>
+        <FormLabel>Justificatifs</FormLabel>
+        <Text>Current files:</Text>
+        <VStack>
+          {transaction.justificatifs_url.map((file, index) => (
+            <Text key={index}>{file.name} - <a href={file.url} target="_blank">View</a></Text>
+          ))}
+        </VStack>
       </FormControl>
       <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
         Enregistrer les modifications
@@ -621,7 +603,6 @@ function TransactionItem({ transaction, transactionId }) {
       <Modal isOpen={isDetailOpen} onClose={onDetailClose} size="full" overflow="auto">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Modifier la ventilation</ModalHeader>
           <ModalBody>
             <>
               <Flex justifyContent="space-between" alignItems="center" p={4} bg="white" boxShadow="md">

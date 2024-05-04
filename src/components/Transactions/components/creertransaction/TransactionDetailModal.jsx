@@ -279,7 +279,7 @@ const ExpenseInformation = ({ formData, onChange, files, setFiles }) => {
                     <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
                       <input {...getInputProps()} />
                       <AttachmentIcon w={12} h={12} color='gray.500' />
-                      <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers</Text>
+                      <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers 3</Text>
                       <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
                       <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
                     </div>

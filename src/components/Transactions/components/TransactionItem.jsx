@@ -150,6 +150,7 @@ function UpdateTransaction({ selectedTransactionId }) {
   };
   const fileBg = useColorModeValue('red.50', 'gray.700');
   const fileBorderColor = useColorModeValue('red.200', 'gray.600');
+  const inputBg = useColorModeValue('gray.100', 'gray.600');
 
   return (
     <VStack spacing={4} align="stretch">
@@ -188,6 +189,13 @@ function UpdateTransaction({ selectedTransactionId }) {
       </FormControl>
       <FormControl mt={4}>
         <FormLabel>Justificatifs</FormLabel>
+        <InputGroup>
+            <Input
+              placeholder="Ajouter des justificatifs"
+              background={inputBg}
+              readOnly
+            />
+          </InputGroup>
         <HStack
           borderWidth="1px"
           borderRadius="lg"

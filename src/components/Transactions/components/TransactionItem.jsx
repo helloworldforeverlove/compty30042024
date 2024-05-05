@@ -31,6 +31,7 @@ import {
   Select,
   chakra,
   HStack,
+  Image,
 } from '@chakra-ui/react';
 import { CiPen } from "react-icons/ci";
 import { supabase } from './../../../supabaseClient'
@@ -184,14 +185,24 @@ function UpdateTransaction({ selectedTransactionId }) {
         />
       </FormControl>
       <FormControl mt={4}>
-        <FormLabel>Justificatifs</FormLabel>
-        <Text>Current files:</Text>
-        <VStack>
-          {transaction.justificatifs_url.map((file, index) => (
-            <Text key={index}>{file.name} - <a href={file.url} target="_blank">View</a></Text>
-          ))}
-        </VStack>
-      </FormControl>
+  <FormLabel>Justificatifs</FormLabel>
+  <Text>Current files:</Text>
+  <VStack>
+    {transaction.justificatifs_url.map((file, index) => (
+      <Box key={index}>
+        <Text>{file.name} - <a href={file.url} target="_blank">View</a></Text>
+        <Image
+          src={file.url}
+          alt={`Justificatif ${file.name}`}
+          boxSize="100px" // Set a fixed size or make it responsive as needed
+          objectFit="cover"
+          borderRadius="md"
+          fallbackSrc="https://via.placeholder.com/100" // Optional: Placeholder if the image fails to load
+        />
+      </Box>
+    ))}
+  </VStack>
+</FormControl>
       <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
         Enregistrer les modifications
       </Button>

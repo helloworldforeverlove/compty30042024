@@ -33,6 +33,8 @@ import {
   HStack,
   Image,
 } from '@chakra-ui/react';
+import { AttachmentIcon, CloseIcon } from '@chakra-ui/icons';
+import { useDropzone } from 'react-dropzone';
 import { CiPen } from "react-icons/ci";
 import { supabase } from './../../../supabaseClient'
 import { GoPaperclip } from 'react-icons/go';
@@ -145,6 +147,33 @@ function UpdateTransaction({ selectedTransactionId }) {
   const fileBorderColor = useColorModeValue('red.200', 'gray.600');
   const inputBg = useColorModeValue('gray.100', 'gray.600');
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filesBis, setFilesBis] = useState([]);
+  const maxFilesBis = 10;
+  const { getRootProps, getInputProps, isDragReject, fileRejections } = useDropzone({
+    accept: 'image/png, image/jpeg, application/pdf',
+    maxSize: 10 * 1024 * 1024, // 10MB max size
+    onDrop: acceptedFilesBis => {
+      setFiles(prevFilesBis=> {
+        const updatedFilesBis = prevFilesBis.concat(acceptedFilesBis).slice(0, maxFilesBis);
+        return updatedFilesBis.map(file => Object.assign(file, {
+          preview: URL.createObjectURL(file)
+        }));
+      });
+      handleFileUpload(acceptedFilesBis);
+    },
+    noClick: filesBis.length >= maxFilesBis,
+    noKeyboard: filesBis.length >= maxFilesBis,
+  });
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+  };
+
+  useEffect(() => {
+    if (filesBis.length === 0) {
+      setSelectedFile(null);
+    }
+  }, [filesBis]);
 
   return (
     <VStack spacing={4} align="stretch">
@@ -184,13 +213,13 @@ function UpdateTransaction({ selectedTransactionId }) {
       <FormControl mt={4}>
         <FormLabel>Justificatifs</FormLabel>
         <InputGroup>
-            <Input
-              placeholder="Ajouter des justificatifs"
-              background={inputBg}
-              readOnly
-              onClick={() => setIsFileModalOpen(true)}
-            />
-          </InputGroup>
+          <Input
+            placeholder="Ajouter des justificatifs"
+            background={inputBg}
+            readOnly
+            onClick={() => setIsFileModalOpen(true)}
+          />
+        </InputGroup>
         <HStack
           borderWidth="1px"
           borderRadius="lg"
@@ -228,26 +257,106 @@ function UpdateTransaction({ selectedTransactionId }) {
           </Tooltip>
         </HStack>
       </FormControl>
-      <Modal isOpen={isFileModalOpen}  size="4xl">
-          <ModalOverlay />
-          <ModalContent minH="80vh">
-            <ModalHeader>Ajouter des justificatifs</ModalHeader>
-            <Box
-              borderBottomWidth="1px"
-              borderColor="gray.200"
-              width="full"
-            />
-            <ModalCloseButton />
-            <ModalBody>
-              <Flex>
-                <>
-                  
-                </>
-                
-              </Flex>
-            </ModalBody>
-          </ModalContent>
-        </Modal>
+      <Modal isOpen={isFileModalOpen} onClose={() => setIsFileModalOpen(false)} size="4xl">
+        <ModalOverlay />
+        <ModalOverlay />
+        <ModalContent minH="80vh">
+          <ModalHeader>Ajouter des justificatifs</ModalHeader>
+          <Box
+            borderBottomWidth="1px"
+            borderColor="gray.200"
+            width="full"
+          />
+          <ModalCloseButton />
+          <ModalBody>
+            <Flex>
+              <>
+                {filesBis.length === 0 ? (
+                  <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', minHeight: '69vh', border: '2px dashed gray', padding: '20px', textAlign: 'center' }}>
+                    <input {...getInputProps()} />
+                    <AttachmentIcon w={12} h={12} color='gray.500' />
+                    <Text>Glissez et déposez les fichiers ici, ou cliquez pour sélectionner des fichiers 3</Text>
+                    <Text fontSize='sm'>Formats autorisés: PNG, JPEG, PDF</Text>
+                    <Text fontSize='sm'>Taille max: 10Mo par justificatif</Text>
+                  </div>
+                ) : (
+                  <VStack width="50%" spacing={4}>
+                    <Box w="95%">
+                      <HStack
+                        borderWidth="1px"
+                        borderRadius="lg"
+                        p={1}
+                        m={1}
+                        justifyContent="space-between"
+                        alignItems="center"
+                        bg={fileBg}
+                        borderColor={fileBorderColor}
+                        width="full"
+                      >
+                        <HStack spacing={2}>
+                          {transaction.justificatifs_url.map((file, index) => (
+                            <Box key={index} display="flex" alignItems="center">
+                              <Image
+                                src={file.url}
+                                alt={`Justificatif ${file.name}`}
+                                objectFit="cover"
+                                borderRadius="md"
+                                boxSize="50px"
+                                fallbackSrc="https://via.placeholder.com/100" // Optional: Placeholder if the image fails to load
+                              />
+                              <Text>{file.name} <a href={file.url} target="_blank"></a></Text>
+                            </Box>
+                          ))}
+                        </HStack>
+                        <Tooltip label="Supprimer le fichier" hasArrow>
+                          <IconButton
+                            icon={<FcFullTrash />}
+                            aria-label="Delete file"
+                            size="sm"
+                            isRound={true}
+                            variant="ghost"
+                          />
+                        </Tooltip>
+                      </HStack>
+                    </Box>
+                    <>
+                      <div {...getRootProps({ className: 'dropzone' })} style={{ width: '100%', padding: '10px', textAlign: 'center' }}>
+                        <input {...getInputProps()} />
+                        <Button
+                          leftIcon={<LiaCloudUploadAltSolid />}
+                          colorScheme="teal"
+                          variant="outline"
+                          bg={useColorModeValue('white', 'gray.800')}
+                          color={useColorModeValue('gray.600', 'white')}
+                          _hover={{
+                            bg: useColorModeValue('gray.100', 'gray.700'),
+                          }}
+                        >
+                          Ajouter d'autres fichiers
+                        </Button>
+                      </div>
+                      <Text fontSize='sm'>
+                        {`Vous pouvez encore en ajouter ${maxFilesBis - filesBis.length}.`}
+                      </Text>
+                    </>
+                  </VStack>
+                )}
+              </>
+              {selectedFile && selectedFile.type.startsWith('image/') && (
+                <Box width="50%" height="100%">
+                  <Image
+                    src={selectedFile.preview}
+                    alt={`Preview of ${selectedFile.name}`}
+                    objectFit="cover"
+                    width="100%"
+                    height="100%"
+                  />
+                </Box>
+              )}
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
       <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
         Enregistrer les modifications
       </Button>

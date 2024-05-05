@@ -141,16 +141,10 @@ function UpdateTransaction({ selectedTransactionId }) {
       montant_total: value
     }));
   };
-
-  const handleJustificatifChange = (newJustificatifs) => {
-    setTransaction(prev => ({
-      ...prev,
-      justificatifs_url: newJustificatifs
-    }));
-  };
   const fileBg = useColorModeValue('red.50', 'gray.700');
   const fileBorderColor = useColorModeValue('red.200', 'gray.600');
   const inputBg = useColorModeValue('gray.100', 'gray.600');
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
   return (
     <VStack spacing={4} align="stretch">
@@ -194,6 +188,7 @@ function UpdateTransaction({ selectedTransactionId }) {
               placeholder="Ajouter des justificatifs"
               background={inputBg}
               readOnly
+              onClick={() => setIsFileModalOpen(true)}
             />
           </InputGroup>
         <HStack
@@ -233,6 +228,26 @@ function UpdateTransaction({ selectedTransactionId }) {
           </Tooltip>
         </HStack>
       </FormControl>
+      <Modal isOpen={isFileModalOpen}  size="4xl">
+          <ModalOverlay />
+          <ModalContent minH="80vh">
+            <ModalHeader>Ajouter des justificatifs</ModalHeader>
+            <Box
+              borderBottomWidth="1px"
+              borderColor="gray.200"
+              width="full"
+            />
+            <ModalCloseButton />
+            <ModalBody>
+              <Flex>
+                <>
+                  
+                </>
+                
+              </Flex>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
       <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
         Enregistrer les modifications
       </Button>

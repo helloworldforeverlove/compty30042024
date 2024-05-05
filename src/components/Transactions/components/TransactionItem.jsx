@@ -202,7 +202,6 @@ function UpdateTransaction({ selectedTransactionId }) {
           <HStack spacing={2}>
             {transaction.justificatifs_url.map((file, index) => (
               <Box key={index} display="flex" alignItems="center">
-                <Text>{file.name} <a href={file.url} target="_blank"></a></Text>
                 <Image
                   src={file.url}
                   alt={`Justificatif ${file.name}`}
@@ -211,6 +210,7 @@ function UpdateTransaction({ selectedTransactionId }) {
                   boxSize="50px"
                   fallbackSrc="https://via.placeholder.com/100" // Optional: Placeholder if the image fails to load
                 />
+                <Text>{file.name} <a href={file.url} target="_blank"></a></Text>
               </Box>
             ))}
           </HStack>

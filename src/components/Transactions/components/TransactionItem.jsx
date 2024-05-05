@@ -148,6 +148,8 @@ function UpdateTransaction({ selectedTransactionId }) {
       justificatifs_url: newJustificatifs
     }));
   };
+  const fileBg = useColorModeValue('red.50', 'gray.700');
+  const fileBorderColor = useColorModeValue('red.200', 'gray.600');
 
   return (
     <VStack spacing={4} align="stretch">
@@ -185,24 +187,44 @@ function UpdateTransaction({ selectedTransactionId }) {
         />
       </FormControl>
       <FormControl mt={4}>
-  <FormLabel>Justificatifs</FormLabel>
-  <Text>Current files:</Text>
-  <VStack>
-    {transaction.justificatifs_url.map((file, index) => (
-      <Box key={index}>
-        <Text>{file.name} - <a href={file.url} target="_blank">View</a></Text>
-        <Image
-          src={file.url}
-          alt={`Justificatif ${file.name}`}
-          boxSize="100px" // Set a fixed size or make it responsive as needed
-          objectFit="cover"
-          borderRadius="md"
-          fallbackSrc="https://via.placeholder.com/100" // Optional: Placeholder if the image fails to load
-        />
-      </Box>
-    ))}
-  </VStack>
-</FormControl>
+        <FormLabel>Justificatifs</FormLabel>
+        <HStack
+          borderWidth="1px"
+          borderRadius="lg"
+          p={1}
+          m={1}
+          justifyContent="space-between"
+          alignItems="center"
+          bg={fileBg}
+          borderColor={fileBorderColor}
+          width="full"
+        >
+          <HStack spacing={2}>
+            {transaction.justificatifs_url.map((file, index) => (
+              <Box key={index} display="flex" alignItems="center">
+                <Text>{file.name} <a href={file.url} target="_blank"></a></Text>
+                <Image
+                  src={file.url}
+                  alt={`Justificatif ${file.name}`}
+                  objectFit="cover"
+                  borderRadius="md"
+                  boxSize="50px"
+                  fallbackSrc="https://via.placeholder.com/100" // Optional: Placeholder if the image fails to load
+                />
+              </Box>
+            ))}
+          </HStack>
+          <Tooltip label="Supprimer le fichier" hasArrow>
+            <IconButton
+              icon={<FcFullTrash />}
+              aria-label="Delete file"
+              size="sm"
+              isRound={true}
+              variant="ghost"
+            />
+          </Tooltip>
+        </HStack>
+      </FormControl>
       <Button colorScheme="blue" onClick={handleUpdate} isLoading={loading}>
         Enregistrer les modifications
       </Button>
@@ -456,13 +478,13 @@ function TransactionItem({ transaction, transactionId }) {
             </Box>
           ))}
         </Box>
-        <Text 
-        fontSize="lg" 
-        fontWeight="bold" 
-        color={amountColor} 
-        onClick={() => handleTransactionClick(transaction.id)}>
+        <Text
+          fontSize="lg"
+          fontWeight="bold"
+          color={amountColor}
+          onClick={() => handleTransactionClick(transaction.id)}>
           {`${transaction.montant_total.toFixed(2)} €`}
-      </Text>
+        </Text>
       </Flex>
 
       <Modal isOpen={isVentilationModalOpen} onClose={onVentilationModalClose} size="xl">
@@ -647,7 +669,7 @@ function TransactionItem({ transaction, transactionId }) {
                   margin="0 auto"
                 >
                   <Box borderWidth="1px" borderRadius="lg" p={4} borderColor={borderColor}>
-                  <UpdateTransaction selectedTransactionId={selectedTransactionId} />
+                    <UpdateTransaction selectedTransactionId={selectedTransactionId} />
                   </Box>
                   <Box p={4} bg={bgColor} borderRadius="lg" borderWidth="1px" borderColor={borderColor}>
                     <Text fontSize="lg" fontWeight="semibold" mb={4}>Ventilation(s)</Text>
